@@ -118,9 +118,6 @@ int main(void)
 			nokia_lcd_write_char(ones + '0', 1);
 			nokia_lcd_render();
 		}
-	
-		
-
     }
 }
 
