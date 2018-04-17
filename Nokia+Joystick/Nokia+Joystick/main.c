@@ -46,43 +46,79 @@ int main(void)
 	DDRD = 0xFF; PORTD = 0x00;
 	
 	adc_init();
-	
-	unsigned short old = (adc_read(0));
-	
-	unsigned short new;
-	
 	nokia_lcd_init();
 	
-	unsigned char hundred = old % 100;
-	unsigned char ten = old % 10;
-	unsigned char one = old % 1;
+	unsigned short joystick_value = adc_read(0);
+	unsigned short new_joy_value;
+	unsigned char thousands = 0;
+	unsigned char hundreds = 0;
+	unsigned char tens = 0;
+	unsigned char ones = 0;
 	
 	nokia_lcd_clear();
-	nokia_lcd_write_char(hundred + '0', 1);
-	nokia_lcd_set_cursor(5,0);
-	nokia_lcd_write_char(ten + '0', 1);
-	nokia_lcd_set_cursor(10,0);
-	nokia_lcd_write_char(one + '0', 1);
+	
+	if(joystick_value > 1000){
+		thousands = joystick_value / 1000;
+		joystick_value = joystick_value % 1000;
+	}
+	
+	if(joystick_value > 100){
+		hundreds = joystick_value / 100;
+		joystick_value = joystick_value % 100;
+	}
+	
+	if(joystick_value > 10){
+		tens = joystick_value / 10;
+		joystick_value = joystick_value % 10;
+	}
+		
+	nokia_lcd_write_char(thousands + '0', 1);
+	nokia_lcd_set_cursor(6,10);
+	nokia_lcd_write_char(hundreds + '0', 1);
+	nokia_lcd_set_cursor(12,10);
+	nokia_lcd_write_char(tens + '0', 1);
+	nokia_lcd_set_cursor(18,10);
+	nokia_lcd_write_char(ones + '0', 1);
 	nokia_lcd_render();
 	
-    /* Replace with your application code */
     while (1) 
     {
+		new_joy_value = adc_read(0);
 		
-		new = adc_read(0);
-		if(new != old){
-			old = new;
-			hundred = old % 100;
-			ten = old % 10;
-			one = old % 1;
+		if(new_joy_value != joystick_value){
+			thousands = 0;
+			hundreds = 0;
+			tens = 0;
+			ones = 0;
+			
+			joystick_value = new_joy_value;
+			
+			if(joystick_value > 1000){
+				thousands = joystick_value / 1000;
+				joystick_value = joystick_value % 1000;
+			}
+			
+			if(joystick_value > 100){
+				hundreds = joystick_value / 100;
+				joystick_value = joystick_value % 100;
+			}
+			
+			if(joystick_value > 10){
+				tens = joystick_value / 10;
+				joystick_value = joystick_value % 10;
+			}
+			
 			nokia_lcd_clear();
-			nokia_lcd_write_char(hundred + '0', 1);
-			nokia_lcd_set_cursor(7,0);
-			nokia_lcd_write_char(ten + '0', 1);
-			nokia_lcd_set_cursor(14,0);
-			nokia_lcd_write_char(one + '0', 1);
+			nokia_lcd_write_char(thousands + '0', 1);
+			nokia_lcd_set_cursor(6,0);
+			nokia_lcd_write_char(hundreds + '0', 1);
+			nokia_lcd_set_cursor(12,0);
+			nokia_lcd_write_char(tens + '0', 1);
+			nokia_lcd_set_cursor(18,0);
+			nokia_lcd_write_char(ones + '0', 1);
 			nokia_lcd_render();
 		}
+	
 		
 
     }
