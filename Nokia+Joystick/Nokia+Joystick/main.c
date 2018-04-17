@@ -47,35 +47,44 @@ int main(void)
 	
 	adc_init();
 	
-	unsigned char old = adc_read(0);
+	unsigned short old = (adc_read(0));
 	
-	if(old > 540){
-		PORTB = 0xFF;
-	}
-	
-	else{
-		PORTB = 0x00;
-	}
-	unsigned char new;
+	unsigned short new;
 	
 	nokia_lcd_init();
+	
+	unsigned char hundred = old % 100;
+	unsigned char ten = old % 10;
+	unsigned char one = old % 1;
+	
 	nokia_lcd_clear();
-	nokia_lcd_write_string("Hello",1);
+	nokia_lcd_write_char(hundred + '0', 1);
+	nokia_lcd_set_cursor(5,0);
+	nokia_lcd_write_char(ten + '0', 1);
+	nokia_lcd_set_cursor(10,0);
+	nokia_lcd_write_char(one + '0', 1);
 	nokia_lcd_render();
 	
     /* Replace with your application code */
     while (1) 
     {
+		
 		new = adc_read(0);
-		
-		
-		if(new > 540){
-			PORTB = 0xFF;
+		if(new != old){
+			old = new;
+			hundred = old % 100;
+			ten = old % 10;
+			one = old % 1;
+			nokia_lcd_clear();
+			nokia_lcd_write_char(hundred + '0', 1);
+			nokia_lcd_set_cursor(7,0);
+			nokia_lcd_write_char(ten + '0', 1);
+			nokia_lcd_set_cursor(14,0);
+			nokia_lcd_write_char(one + '0', 1);
+			nokia_lcd_render();
 		}
 		
-		else{
-			PORTB = 0x00;
-		}
+
     }
 }
 
