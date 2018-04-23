@@ -7,11 +7,71 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/cpufunc.h>
 #include "nokia5110.h"
-#include "adc.h"
 #include "bit.h"
-#include "HX711.h"
 
+// HX711 helper functions
+
+unsigned char GAIN;
+
+void HX711_setGain(unsigned char gain){
+	switch(gain){
+		case 128:
+			GAIN = 1;
+			break;
+			
+		case 32:
+			GAIN = 2;
+			break;
+			
+		case 64:
+			GAIN = 3;
+			break;
+			
+		default:
+			GAIN = 1;
+			break;
+	}
+	
+	PORTB = 0x00; _NOP(); _NOP(); _NOP(); _NOP();
+}
+
+unsigned char HX711_isReady(){
+	if(PINA & 0x01){
+		return 1;
+	}
+	
+	else{
+		return 0;
+	}
+}
+
+int32_t HX711_read(){
+	int32_t value = 0;
+		
+	while(!HX711_isReady()){ }
+	
+	for(unsigned char i = 0; i < 24; i++){
+		PORTB = 0xFF; _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+		value = value << 1;
+		PORTB = 0x00; _NOP(); _NOP(); _NOP(); _NOP();
+		
+		if(GetBit(PINA,0)){
+			value++;
+		}
+		
+	}
+	
+	for(unsigned char i = 0; i < GAIN; i++){
+		PORTB = 0xFF; _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
+		PORTB = 0x00; _NOP(); _NOP(); _NOP(); _NOP();
+	}
+	
+	value = value ^ 0x80000;
+	
+	return value;
+}
 
 
 int main(void)
@@ -22,12 +82,29 @@ int main(void)
     
     //adc_init();
     nokia_lcd_init();
-	HX711_init();
-    HX711_powerUp();
-	HX711_setGain(32);
+	nokia_lcd_clear();
+	nokia_lcd_write_string("Welcome",1);
+	nokia_lcd_render();
+	
+	nokia_lcd_set_cursor(0,10);
+	nokia_lcd_write_string("Reading...",1);
+	nokia_lcd_render();
+	
+	PORTB = 0x00;
+	PORTB = 0xFF;
+	
+	_delay_us(70);
+	
+	
+	HX711_setGain(64);
     int32_t joystick_value = HX711_read();
-	HX711_powerDown();
+	
+	nokia_lcd_set_cursor(0,20);
+	nokia_lcd_write_string("Done...",1);
+	nokia_lcd_render();
+	
     int32_t new_joy_value;
+	
 	unsigned char ten_millions = 0;
 	unsigned char millions = 0;
 	unsigned char hundred_thousands = 0;
@@ -78,31 +155,36 @@ int main(void)
 	nokia_lcd_set_cursor(6,0);
 	nokia_lcd_write_char(millions + '0', 1);
 	
-	nokia_lcd_set_cursor(0,10);
+	nokia_lcd_set_cursor(14,0);
 	nokia_lcd_write_char(hundred_thousands + '0', 1);
-	nokia_lcd_set_cursor(6,10);
+	nokia_lcd_set_cursor(20,0);
 	nokia_lcd_write_char(ten_thousands + '0', 1);
-	nokia_lcd_set_cursor(12,10);
+	nokia_lcd_set_cursor(26,0);
 	nokia_lcd_write_char(thousands + '0', 1);
 	
-    nokia_lcd_set_cursor(0,20);
+    nokia_lcd_set_cursor(34,0);
     nokia_lcd_write_char(hundreds + '0', 1);
-    nokia_lcd_set_cursor(6,20);
+    nokia_lcd_set_cursor(40,0);
     nokia_lcd_write_char(tens + '0', 1);
-    nokia_lcd_set_cursor(12,20);
+    nokia_lcd_set_cursor(46,0);
     nokia_lcd_write_char(ones + '0', 1);
 	nokia_lcd_set_cursor(0,30);
 	nokia_lcd_write_string("Old Val", 1);
+	
     nokia_lcd_render();
 	
-	_delay_ms(200); 
-    
+	_delay_ms(200);
+	
     while (1)
     {
-		HX711_powerUp();
-		HX711_setGain(32);
+		PORTB = 0x00;
+		PORTB = 0xFF;
+		
+		_delay_us(70);
+		
+		PORTB = 0x00;
+		
 	    new_joy_value = HX711_read();
-		HX711_powerDown();
 	    
 	    if(new_joy_value != joystick_value){
 			ten_millions = 0;
@@ -152,35 +234,32 @@ int main(void)
 		    }
 		    
 			nokia_lcd_clear();
-			nokia_lcd_write_string("failed to",1);
-			nokia_lcd_set_cursor(0,10);
-			nokia_lcd_write_string("read data :(",1);
-			nokia_lcd_render();
-			
-			/*
-			nokia_lcd_clear();
 		    nokia_lcd_write_char(ten_millions + '0', 1);
 		    nokia_lcd_set_cursor(6,0);
 		    nokia_lcd_write_char(millions + '0', 1);
 		    
-		    nokia_lcd_set_cursor(0,10);
+		    nokia_lcd_set_cursor(14,0);
 		    nokia_lcd_write_char(hundred_thousands + '0', 1);
-		    nokia_lcd_set_cursor(6,10);
+		    nokia_lcd_set_cursor(20,0);
 		    nokia_lcd_write_char(ten_thousands + '0', 1);
-		    nokia_lcd_set_cursor(12,10);
+		    nokia_lcd_set_cursor(26,0);
 		    nokia_lcd_write_char(thousands + '0', 1);
 		    
-		    nokia_lcd_set_cursor(0,20);
+		    nokia_lcd_set_cursor(34,0);
 		    nokia_lcd_write_char(hundreds + '0', 1);
-		    nokia_lcd_set_cursor(6,20);
+		    nokia_lcd_set_cursor(40,0);
 		    nokia_lcd_write_char(tens + '0', 1);
-		    nokia_lcd_set_cursor(12,20);
+		    nokia_lcd_set_cursor(46,0);
 		    nokia_lcd_write_char(ones + '0', 1);
 			nokia_lcd_set_cursor(0, 30);
 			nokia_lcd_write_string("New Val", 1);
 		    nokia_lcd_render();
-			*/
+		
 	    }
+		
+		nokia_lcd_set_cursor(0, 30);
+		nokia_lcd_write_string("Old Val", 1);
+		nokia_lcd_render();
     }
 }
 

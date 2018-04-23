@@ -37,7 +37,6 @@ SUBDIRS :=
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
-../HX711.c \
 ../main.c \
 ../nokia5110.c
 
@@ -49,22 +48,18 @@ ASM_SRCS +=
 
 
 OBJS +=  \
-HX711.o \
 main.o \
 nokia5110.o
 
 OBJS_AS_ARGS +=  \
-HX711.o \
 main.o \
 nokia5110.o
 
 C_DEPS +=  \
-HX711.d \
 main.d \
 nokia5110.d
 
 C_DEPS_AS_ARGS +=  \
-HX711.d \
 main.d \
 nokia5110.d
 
@@ -82,8 +77,6 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
-
-
 
 
 
