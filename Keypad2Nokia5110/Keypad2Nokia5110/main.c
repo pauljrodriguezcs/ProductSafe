@@ -21,7 +21,7 @@ int main(void)
 	DDRC = 0x0F;	//Set PC7...PC3 to input, PC2...PC0 to output [0000 1111]
 	PORTC = 0xF0;	//Init port C to 1s							[1111 0000]
 	DDRD = 0xFF;	//Set Port D to output
-	PORTD = 0x00;	//Init Port D to 1s
+	PORTD = 0x00;	//Init Port D to 0s
 	nokia_lcd_init();
 	nokia_lcd_clear();
 	
