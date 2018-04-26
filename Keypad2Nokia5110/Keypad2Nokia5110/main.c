@@ -10,6 +10,11 @@
 #include "keypad.h"
 #include "nokia5110.h"
 
+void outputchar(unsigned char c){
+	nokia_lcd_clear();
+	nokia_lcd_write_char(c,1);
+	nokia_lcd_render();
+}
 
 int main(void)
 {
@@ -25,23 +30,56 @@ int main(void)
 	nokia_lcd_init();
 	nokia_lcd_clear();
 	
+	unsigned char two[4] = {'2','A','B','C'};
+	unsigned char three[4] = {'3','D','E','F'};
+	unsigned char four[4] = {'4','G','H','I'};
+	unsigned char five[4] = {'5','J','K','L'};
+	unsigned char six[4] = {'6','M','N','O'};
+	unsigned char seven[4] = {'7','P','R','S'};
+	unsigned char eight[4] = {'8','T','U','V'};
+	unsigned char nine[4] = {'9','W','X','Y'};
+	
+	
 	char intro[] = "Hello";
 	nokia_lcd_write_string(intro,1);
 	nokia_lcd_render();
-	unsigned char key = '\0';
-	unsigned char tmp = '\0';
+	unsigned char previous_key = '\0';
+	unsigned char tmp;
+	unsigned char pushed_key;
+	unsigned int num_times_key_pushed = 0;
     while (1) 
     {
-		tmp = GetKeypadKey();
-		if(key != tmp){
-			nokia_lcd_clear();
-			nokia_lcd_write_char(key,1);
-			unsigned char test = 141;
-			strcpy(intro, test);
-			nokia_lcd_write_string(intro,1);
-			nokia_lcd_render();
-			key = tmp;
+		while((pushed_key = GetKeypadKey()) == '\0'){}
+				
+		while((tmp = GetKeypadKey()) == pushed_key){}
+		
+		if(previous_key == pushed_key){
+			if(num_times_key_pushed < 3){
+				num_times_key_pushed++;
+			}
+			
+			else{
+				num_times_key_pushed = 0;
+			}
+			
+			
+			if(pushed_key == '2'){ outputchar(two[num_times_key_pushed]); }
+			else if(pushed_key == '3'){ outputchar(three[num_times_key_pushed]); }
+			else if(pushed_key == '4'){ outputchar(four[num_times_key_pushed]); }
+			else if(pushed_key == '5'){ outputchar(five[num_times_key_pushed]); }
+			else if(pushed_key == '6'){ outputchar(six[num_times_key_pushed]); }
+			else if(pushed_key == '7'){ outputchar(seven[num_times_key_pushed]); }
+			else if(pushed_key == '8'){ outputchar(eight[num_times_key_pushed]); }
+			else if(pushed_key == '9'){ outputchar(nine[num_times_key_pushed]); }
 		}
+		
+		else{
+			outputchar(pushed_key);
+			previous_key = pushed_key;
+			num_times_key_pushed = 0;
+		}
+		
+		
     }
 }
 
