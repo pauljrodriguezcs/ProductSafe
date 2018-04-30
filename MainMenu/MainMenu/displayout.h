@@ -57,4 +57,13 @@ void user_submenu_display(){
 	nokia_lcd_render();
 }
 
+void adduser_name_display(const char* str){
+	nokia_lcd_clear();
+	nokia_lcd_write_string("Enter Name",1);
+	nokia_lcd_set_cursor(0,10);
+	nokia_lcd_write_string(str,1);
+	nokia_lcd_render();
+}
+
+
 #endif //DISPLAYOUT_H
