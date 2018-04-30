@@ -42,32 +42,11 @@ unsigned long auto_timer = 0;
 unsigned char testing_flag = 0;
 
 unsigned char AlphaNumPad(){
-	/*
-	unsigned char tens = 0;
-	unsigned char ones = 0;
-	unsigned long temp_timer = 0;
-	*/
 	while((pushed_key_ANP = GetKeypadKey()) == '\0'){
 		if(auto_timer == 50){
 			auto_timer = 0;
 			return '\0';
 		}
-		
-		/*
-		temp_timer = auto_timer;
-		
-		tens = temp_timer / 10;
-		ones = temp_timer % 10;
-		
-		
-		nokia_lcd_set_cursor(0,30);
-		nokia_lcd_write_char(tens + '0',1);
-		nokia_lcd_set_cursor(8,30);
-		nokia_lcd_write_char(ones + '0',1);
-		nokia_lcd_render();
-		
-		
-		*/
 		
 		_delay_ms(100);
 		++auto_timer;
@@ -120,13 +99,31 @@ void adduser_name_display(const char* str){
 	nokia_lcd_render();
 }
 
+
+
 //enum AddUserState {username, userweight, usergender, userpassword, userconfirm} adduser_state;
-enum AddUserState {username,userweight} adduser_state;
+enum AddUserState {username,userweight, usergender, userpassword, confirmpassword, adduser_finished} adduser_state;
 char user_name[14] = "_";
+char weight_output[5] = "_";
 unsigned char user_name_size = 0;	
+unsigned char user_weight = 0;
+unsigned char user_gender = 0;
+char user_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+char user_compare_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+unsigned password_size = 0;
 unsigned char keypad_character = '\0';
 unsigned char previous_character = '\0';
+unsigned char password_attempt_fails = 0;
 
+unsigned char password_verification(){
+	for(unsigned char i = 0; i < 8; ++i){
+		if(user_password[i] != user_compare_password[i]){
+			return 0;
+		}
+	}
+	
+	return 1;
+}
 void AddUser_Init(){
 	nokia_lcd_clear();
 	nokia_lcd_write_string("Enter Name",1);
@@ -137,11 +134,12 @@ void AddUser_Init(){
 }
 
 void AddUser_Tick(){
-	keypad_character = AlphaNumPad();
-	previous_character = '\0';
+	
 	//Actions
 	switch(adduser_state){
 		case username:
+			keypad_character = AlphaNumPad();
+			previous_character = '\0';
 			while(keypad_character != '#'){
 				if(keypad_character == '*'){
 					if(user_name_size > 0){
@@ -178,30 +176,222 @@ void AddUser_Tick(){
 				keypad_character = AlphaNumPad();
 			}
 			
+
+			
 			break;
 		
-		case userweight:	
-			if(!testing_flag){
-				user_name[user_name_size] = '\0';
-				nokia_lcd_clear();
-				nokia_lcd_write_string("Your Name is:",1);
-				nokia_lcd_set_cursor(0,10);
-				nokia_lcd_write_string(user_name,1);
-				nokia_lcd_render();
+		case userweight:
+			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+
+			while(keypad_character != '#'){
+				if(keypad_character != '\0' && keypad_character != '*' && user_weight == 0){
+					user_weight = keypad_character - '0';
+					weight_output[0] =  keypad_character;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter your",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("weight in lbs",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(weight_output,1);
+					nokia_lcd_render();
+				}
 				
-				testing_flag = 1;
+				else if(keypad_character != '\0' && keypad_character != '*' && user_weight >= 1 && user_weight <= 9){
+					user_weight = (user_weight * 10) + keypad_character - '0';
+					weight_output[1] =  keypad_character;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter your",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("weight in lbs",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(weight_output,1);
+					nokia_lcd_render();
+				}
+				
+				else if(keypad_character != '\0' && keypad_character != '*' && user_weight >= 10 && user_weight <= 99){
+					user_weight = (user_weight * 10) + keypad_character - '0';
+					weight_output[2] = keypad_character;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter your",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("weight in lbs",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(weight_output,1);
+					nokia_lcd_render();
+				}
+				
+				else if(keypad_character == '*'){
+					user_weight = 0;
+					weight_output[0] = '_';
+					weight_output[1] = '\0';
+					weight_output[2] = '\0';
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter your",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("weight in lbs",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(weight_output,1);
+					nokia_lcd_render();
+				}
+				
+				while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(100); }
+				
+				while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(100); }
+				
+				
 			}
 			break;
-		/*
+		
 		case usergender:
-			break;
+			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
 			
+			while(keypad_character != '#'){
+				if(keypad_character == '1'){
+					user_gender = 1;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Select Gender",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("1: Male",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string("2: Female",1);
+					nokia_lcd_set_cursor(0,30);
+					nokia_lcd_write_string("Male",1);
+					nokia_lcd_render();
+				}
+				
+				if(keypad_character == '2'){
+					user_gender = 2;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Select Gender",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("1: Male",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string("2: Female",1);
+					nokia_lcd_set_cursor(0,30);
+					nokia_lcd_write_string("Female",1);
+					nokia_lcd_render();
+				}
+				
+				while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+				
+				while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+				
+			}	
+			
+			break;
+		
 		case userpassword:
+			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+			
+			while(keypad_character != '#'){
+				if(keypad_character != '\0' && keypad_character != '*'){
+					if(password_size < 8){
+						user_password[password_size] = keypad_character;
+						if(password_size + 1 < 8){
+							user_password[password_size + 1] = '*';
+						}
+						nokia_lcd_clear();
+						nokia_lcd_write_string("Create",1);
+						nokia_lcd_set_cursor(0,10);
+						nokia_lcd_write_string("Password",1);
+						nokia_lcd_set_cursor(0,20);
+						nokia_lcd_write_string(user_password,1);
+						nokia_lcd_render();
+						
+						++password_size;
+					}					
+				}
+				
+				if(keypad_character == '*'){
+					password_size = 0;
+					for(unsigned char i = 0; i < 8; ++i){
+						user_password[i] = '\0';
+					}
+					user_password[0] = '*';
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Create",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("Password",1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(user_password,1);
+					nokia_lcd_render();
+				}
+				
+				while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+				
+				while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+				
+			}
+						
+			break;
+				
+		case confirmpassword:
+			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+			
+			while(keypad_character != '#'){
+				if(keypad_character != '\0' && keypad_character != '*'){
+					if(password_size < 8){
+						user_compare_password[password_size] = keypad_character;
+						if(password_size + 1 < 8){
+							user_compare_password[password_size + 1] = '*';
+						}
+						nokia_lcd_clear();
+						nokia_lcd_write_string("Confirm",1);
+						nokia_lcd_set_cursor(0,10);
+						nokia_lcd_write_string("Password",1);
+						nokia_lcd_set_cursor(60,10);
+						nokia_lcd_write_char(password_attempt_fails + '0',1);
+						nokia_lcd_set_cursor(0,20);
+						nokia_lcd_write_string(user_compare_password,1);
+						nokia_lcd_render();
+						
+						++password_size;
+					}
+					
+					
+				}
+				
+				if(keypad_character == '*'){
+					password_size = 0;
+					for(unsigned char i = 0; i < 8; ++i){
+						user_compare_password[i] = '\0';
+					}
+					user_compare_password[0] = '*';
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Confirm",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("Password:",1);
+					nokia_lcd_set_cursor(60,10);
+					nokia_lcd_write_char(password_attempt_fails + '0',1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(user_compare_password,1);
+					nokia_lcd_render();
+				}
+				
+				while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+				
+				while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
+				
+			}
+			
+			
+			if(!password_verification()){
+				++password_attempt_fails;
+			}
+			
+			else{
+				password_attempt_fails = 0;
+			}
+			
+			break;
+		
+		case adduser_finished:
 			break;
 			
-		case userconfirm:
-			break;
-		*/
 		default:
 			break;
 	}
@@ -209,25 +399,166 @@ void AddUser_Tick(){
 	//Transitions
 	switch(adduser_state){
 		case username:
-			if(keypad_character == '#'){
+			if(keypad_character == '#' && user_name_size > 0){
+				user_name[user_name_size] = '\0';
+				user_name_size = user_name_size - 1;
+				user_weight = 0;
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Enter your",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("weight in lbs",1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("_",1);
+				nokia_lcd_render();
 				adduser_state = userweight;
+			}
+			
+			else if(user_name_size == 0){
+				adduser_name_display("_");
+				adduser_state = username;
 			}
 			
 			break;
 		
 		case userweight:
-			adduser_state = userweight;
+			if(user_weight > 90){
+				user_gender = 0;
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Select Gender",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("1: Male",1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("2: Female",1);
+				nokia_lcd_set_cursor(0,30);
+				nokia_lcd_write_string("_",1);
+				nokia_lcd_render();
+			
+				adduser_state = usergender;
+			}
+			
+			else{
+				user_weight = 0;
+				adduser_state = userweight;
+			}
+			
 			break;
-		/*
+		
 		case usergender:
+			if(user_gender != 0){
+				password_size = 0;
+				for(unsigned char i = 0; i < 8; ++i){
+					user_password[i] = '\0';
+				}
+				user_password[0] = '*';
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Create",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("Password",1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("*",1);
+				nokia_lcd_render();
+				
+				adduser_state = userpassword;
+			}
+			
+			else{
+				adduser_state = usergender;
+			}
+			
 			break;
 		
 		case userpassword:
+			if(password_size == 8){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Confirm",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("Password: ",1);
+				nokia_lcd_set_cursor(60,10);
+				nokia_lcd_write_char(password_attempt_fails + '0',1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("*",1);
+				nokia_lcd_render();
+				password_size = 0;
+				password_attempt_fails = 0;
+				for(unsigned char i = 0; i < 8; ++i){
+					user_compare_password[i] = '\0';
+				}
+				user_compare_password[0] = '*';
+				adduser_state = confirmpassword;
+			}
+			else{
+				
+				adduser_state = userpassword;
+			}
+			
 			break;
 		
-		case userconfirm:
+		case confirmpassword:
+			if(password_attempt_fails == 0){
+				nokia_lcd_clear();
+				nokia_lcd_write_string(user_name,1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string(weight_output,1);
+				nokia_lcd_set_cursor(20,10);
+				nokia_lcd_write_string("lbs",1);
+				nokia_lcd_set_cursor(0,20);
+				if(user_gender == 1){
+					nokia_lcd_write_string("Male",1);
+				}
+				
+				else if(user_gender == 2){
+					nokia_lcd_write_string("Female",1);
+				}
+				
+				nokia_lcd_render();
+				adduser_state = adduser_finished; 
+			}
+				
+			else if(password_attempt_fails == 3){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Create",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("Password",1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("*",1);
+				nokia_lcd_render();
+				password_attempt_fails = 0;
+				password_size = 0;
+				for(unsigned char i = 0; i < 8; ++i){
+					user_password[i] = '\0';
+					user_compare_password[i] = '\0';
+				}
+				user_password[0] = '*';
+				user_compare_password[0] = '\0';
+				
+				adduser_state = userpassword;
+			}
+			
+			else{
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Confirm",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("Password: ",1);
+				nokia_lcd_set_cursor(60,10);
+				nokia_lcd_write_char(password_attempt_fails + '0',1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string("*",1);
+				nokia_lcd_render();
+				password_size = 0;
+				for(unsigned char i = 0; i < 8; ++i){
+					user_compare_password[i] = '\0';
+				}
+				user_compare_password[0] = '*';
+				adduser_state = confirmpassword;
+			}
+			
+			
 			break;
-		*/
+		
+		case adduser_finished:
+			adduser_state = adduser_finished;
+			break;
+		
 		default:
 			adduser_state = username;
 			break;
