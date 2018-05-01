@@ -40,6 +40,8 @@ void drinks_submenu_display(){
 	nokia_lcd_write_string("2: Replace",1);
 	nokia_lcd_set_cursor(20,30);
 	nokia_lcd_write_string("Drink",1);
+	nokia_lcd_set_cursor(2,40);
+	nokia_lcd_write_string("3: Main Menu",1);
 	nokia_lcd_render();
 }
 
@@ -51,9 +53,7 @@ void user_submenu_display(){
 	nokia_lcd_set_cursor(2,20);
 	nokia_lcd_write_string("2: Delete User",1);
 	nokia_lcd_set_cursor(2,30);
-	nokia_lcd_write_string("3: Reset",1);
-	nokia_lcd_set_cursor(35,40);
-	nokia_lcd_write_string("Password",1);
+	nokia_lcd_write_string("3: Main Menu",1);
 	nokia_lcd_render();
 }
 
