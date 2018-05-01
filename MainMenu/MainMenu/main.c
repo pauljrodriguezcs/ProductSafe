@@ -10,6 +10,7 @@
 #include <avr/portpins.h> 
 #include <avr/pgmspace.h> 
 #include <util/delay.h>
+#include <string.h>
 
 #include "displayout.h"
 #include "keypad.h"
@@ -27,15 +28,16 @@ unsigned char settings_menu_selection = '\0';
 unsigned char drink_menu_selection = '\0';
 unsigned char user_menu_selection = '\0';
 unsigned char adding_user_flag = 0;
-unsigned char number_of_user = 0;
-	
-typedef struct{
-	unsigned char name[14];
+unsigned char removeusers_flag = 0;
+unsigned char number_of_users = 0;
+
+struct User{
+	char name[14];
 	unsigned int weight;
 	unsigned char gender;
-	unsigned char password[9];
+	char password[9];
 
-} User;
+};
 
 struct User List_of_Users[4] = {
 									{"_", 0, 0, "00000000"},
@@ -44,6 +46,64 @@ struct User List_of_Users[4] = {
 									{"_", 0, 0, "00000000"},
 								};
 
+
+void removeusers_intro(){
+	nokia_lcd_clear();
+	if(number_of_users == 1){
+		nokia_lcd_write_string("Select User",1);
+		nokia_lcd_set_cursor(0,10);
+		nokia_lcd_write_string("1: ",1);
+		nokia_lcd_write_string(List_of_Users[0].name,1);
+		nokia_lcd_render();
+	}
+	
+	else if(number_of_users == 2){
+		nokia_lcd_write_string("Select User",1);
+		nokia_lcd_set_cursor(0,10);
+		nokia_lcd_write_string("1: ",1);
+		nokia_lcd_write_string(List_of_Users[0].name,1);
+		nokia_lcd_set_cursor(0,20);
+		nokia_lcd_write_string("2: ",1);
+		nokia_lcd_write_string(List_of_Users[1].name,1);
+		nokia_lcd_render();
+	}
+	
+	else if(number_of_users == 3){
+		nokia_lcd_write_string("Select User",1);
+		nokia_lcd_set_cursor(0,10);
+		nokia_lcd_write_string("1: ",1);
+		nokia_lcd_write_string(List_of_Users[0].name,1);
+		nokia_lcd_set_cursor(0,20);
+		nokia_lcd_write_string("2: ",1);
+		nokia_lcd_write_string(List_of_Users[1].name,1);
+		nokia_lcd_set_cursor(0,30);
+		nokia_lcd_write_string("3: ",1);
+		nokia_lcd_write_string(List_of_Users[2].name,1);
+		nokia_lcd_render();
+	}
+	
+	else if(number_of_users == 4){
+		nokia_lcd_write_string("Select User",1);
+		nokia_lcd_set_cursor(0,10);
+		nokia_lcd_write_string("1: ",1);
+		nokia_lcd_write_string(List_of_Users[0].name,1);
+		nokia_lcd_set_cursor(0,20);
+		nokia_lcd_write_string("2: ",1);
+		nokia_lcd_write_string(List_of_Users[1].name,1);
+		nokia_lcd_set_cursor(0,30);
+		nokia_lcd_write_string("3: ",1);
+		nokia_lcd_write_string(List_of_Users[2].name,1);
+		nokia_lcd_set_cursor(0,40);
+		nokia_lcd_write_string("4: ",1);
+		nokia_lcd_write_string(List_of_Users[3].name,1);
+		nokia_lcd_render();
+	}
+	
+	else{
+		nokia_lcd_write_string("No Users!",1);
+		nokia_lcd_render();
+	}
+}
 
 ////////// Start of helper function that returns Numeric & AlphaNumeric Values //////////
 unsigned char one[4] = {'1','1','1','1'};
@@ -422,11 +482,8 @@ void MainMenu_Tick(){
 			
 			else if(user_menu_selection == '2'){
 				mainmenu_state = remove_user;
-				nokia_lcd_clear();
-				nokia_lcd_write_string("*Remove Usr*",1);
-				nokia_lcd_set_cursor(2,10);
-				nokia_lcd_write_string("# to return",1);
-				nokia_lcd_render();
+				removeusers_flag = 1;
+				removeusers_intro();
 			}
 			
 			else if(user_menu_selection == '3'){
@@ -457,18 +514,13 @@ void MainMenu_Tick(){
 			break;
 			
 		case remove_user:
-			if(temp_menu_selection == '#'){
-				mainmenu_state = MainMenu;
-				main_menu_selection = '\0';
-				temp_menu_selection = '\0';
-				settings_menu_selection = '\0';
-				drink_menu_selection = '\0';
-				user_menu_selection = '\0';
-				main_menu_display();
+			if(removeusers_flag){
+				mainmenu_state = remove_user;
 			}
 			
 			else{
-				mainmenu_state = remove_user;
+				main_menu_display();
+				mainmenu_state = MainMenu;
 			}
 			
 			break;
@@ -536,9 +588,8 @@ void MainMenuPulse(unsigned portBASE_TYPE Priority)
 
 ////////// Menu State Machine //////////
  
+ 
 ////////// Adding A User State Machine //////////
-
-
 enum AddUserState {adduser_init, username,userweight, usergender, userpassword, confirmpassword, adduser_finished} adduser_state;
 
 char user_name[14] = "_";
@@ -844,38 +895,45 @@ void AddUser_Tick(){
 	//Transitions
 	switch(adduser_state){
 		case adduser_init:
-			if(adding_user_flag){
+			if(adding_user_flag ){
+				if(number_of_users == 4){
+					adding_user_flag = 0;
+					adduser_state = adduser_init;
+				}
 				
-				for(unsigned char i = 0; i < 14; ++i){
-					user_name[i] = '\0';
-					if(i < 5){
-						weight_output[i] = '\0';
+				else{
+					for(unsigned char i = 0; i < 14; ++i){
+						user_name[i] = '\0';
+						if(i < 5){
+							weight_output[i] = '\0';
+						}
 					}
-				}
-				user_name[0] = '_';
-				weight_output[0] = '_';
-				user_name_size = 0;
-				user_weight = 0;
-				user_gender = 0;
+					user_name[0] = '_';
+					weight_output[0] = '_';
+					user_name_size = 0;
+					user_weight = 0;
+					user_gender = 0;
 				
-				for(unsigned char i = 0; i < 8; ++i){
-					user_password[i] = '\0';
-					user_compare_password[i] = '\0';
-				}
-				user_password[0] = '*';
-				user_compare_password[0] = '\0';
-				password_size = 0;
-				keypad_character = '\0';
-				previous_character = '\0';
-				password_attempt_fails = 0;
-				adding_user_finished = 0;
+					for(unsigned char i = 0; i < 8; ++i){
+						user_password[i] = '\0';
+						user_compare_password[i] = '\0';
+					}
+					user_password[0] = '*';
+					user_compare_password[0] = '\0';
+					password_size = 0;
+					keypad_character = '\0';
+					previous_character = '\0';
+					password_attempt_fails = 0;
+					adding_user_finished = 0;
 				
-				nokia_lcd_clear();
-				nokia_lcd_write_string("Enter Name",1);
-				nokia_lcd_set_cursor(0,10);
-				nokia_lcd_write_string(user_name,1);
-				nokia_lcd_render();
-				adduser_state = username;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter Name",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string(user_name,1);
+					nokia_lcd_render();
+					adduser_state = username;
+				}
+				
 			}
 			
 			else{
@@ -1063,6 +1121,11 @@ void AddUser_Tick(){
 		case adduser_finished:
 			if(adding_user_finished){
 				adding_user_flag = 0;
+				strncpy(List_of_Users[number_of_users].name,user_name,sizeof(List_of_Users[number_of_users].name));
+				strncpy(List_of_Users[number_of_users].password,user_password,sizeof(List_of_Users[number_of_users].password));
+				List_of_Users[number_of_users].gender = user_gender;
+				List_of_Users[number_of_users].weight = user_weight;
+				++number_of_users;
 				adduser_state = adduser_init;
 			}
 			
@@ -1091,8 +1154,329 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 {
 	xTaskCreate(AddUserTask, (signed portCHAR *)"AddUserTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
 }
- 
+
  ////////// Adding A User State Machine //////////
+ 
+ ////////// Removing A User State Machine //////////
+
+ unsigned char removeuser_selection = '\0';
+ unsigned char removeuser_prev_selection = '\0';
+ unsigned char removeuser_password_fails = 0;
+ char temporary_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+ unsigned char user_to_remove = 5;
+
+ void swap_users(unsigned char dest, unsigned char source){
+	 char tempname[14] = " ";
+	 char temppass[9] = " ";
+	 unsigned int tempweight = 0;
+	 unsigned char tempgender = 0;
+	 
+	 strncpy(tempname,List_of_Users[dest].name,sizeof(tempname));
+	 strncpy(List_of_Users[dest].name,List_of_Users[source].name,sizeof(List_of_Users[dest].name));
+	 strncpy(List_of_Users[source].name,tempname,sizeof(List_of_Users[source].name));
+	 
+	 strncpy(temppass,List_of_Users[dest].password,sizeof(temppass));
+	 strncpy(List_of_Users[dest].password,List_of_Users[source].password,sizeof(List_of_Users[dest].password));
+	 strncpy(List_of_Users[source].password,temppass,sizeof(List_of_Users[source].password));
+	 
+	 tempweight = List_of_Users[dest].weight;
+	 List_of_Users[dest].weight = List_of_Users[source].weight;
+	 List_of_Users[source].weight = tempweight;
+	 
+	 tempgender = List_of_Users[dest].gender;
+	 List_of_Users[dest].gender = List_of_Users[source].gender;
+	 List_of_Users[source].gender = tempgender;
+ }
+
+ unsigned char remove_password_verification(){
+	 for(unsigned char i = 0; i < 8; ++i){
+		 if(List_of_Users[user_to_remove].password[i] != temporary_password[i]){
+			 return 0;
+		 }
+	 }
+	 
+	 return 1;
+ }
+
+ enum RemoveUsers {removeusers_init, removeuser_select, removeuser_password, removeuser_confirm} removeusers;
+
+ void RemoveUsers_Init(){
+	 removeusers = removeusers_init;
+ }
+
+ void RemoveUsers_Tick(){
+	 //Actions
+	 switch(removeusers){
+		 case removeusers_init:
+			break;
+		 
+		 case removeuser_select:
+			 while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			 while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
+			 
+			 removeuser_selection = removeuser_selection - '1';
+			 
+			 break;
+		 
+		 case removeuser_password:
+			 while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			 while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
+			 
+			 while(removeuser_selection != '#'){
+				 if(removeuser_selection != '\0' && removeuser_selection != '*'){
+					 if(password_size < 8){
+						 temporary_password[password_size] = removeuser_selection;
+						 if(password_size + 1 < 8){
+							 temporary_password[password_size + 1] = '*';
+						 }
+						 nokia_lcd_clear();
+						 nokia_lcd_write_string("Enter",1);
+						 nokia_lcd_set_cursor(0,10);
+						 nokia_lcd_write_string("Password: ",1);
+						 nokia_lcd_write_char(removeuser_password_fails + '0',1);
+						 nokia_lcd_set_cursor(0,20);
+						 nokia_lcd_write_string(temporary_password,1);
+						 nokia_lcd_render();
+						 
+						 ++password_size;
+					 }
+				 }
+				 
+				 if(removeuser_selection == '*'){
+					 password_size = 0;
+					 for(unsigned char i = 0; i < 8; ++i){
+						 temporary_password[i] = '\0';
+					 }
+					 temporary_password[0] = '*';
+					 nokia_lcd_clear();
+					 nokia_lcd_write_string("Enter",1);
+					 nokia_lcd_set_cursor(0,10);
+					 nokia_lcd_write_string("Password: ",1);
+					 nokia_lcd_write_char(removeuser_password_fails + '0',1);
+					 nokia_lcd_set_cursor(0,20);
+					 nokia_lcd_write_string(temporary_password,1);
+					 nokia_lcd_render();
+				 }
+				 
+				 while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+				 
+				 while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
+				 
+			 }
+			 
+			 
+			 if(!remove_password_verification()){
+				 ++removeuser_password_fails;
+			 }
+			 
+			 else{
+				 removeuser_password_fails = 0;
+			 }
+			 break;
+		 
+		 case removeuser_confirm:
+			 while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			 while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
+			 break;
+		 
+		 default:
+			break;
+	 }
+	 //Transitions
+	 switch(removeusers){
+		 case removeusers_init:
+			 if(removeusers_flag){
+				 nokia_lcd_clear();
+				 if(number_of_users > 0 && number_of_users < 5){
+					 removeusers_intro();
+					 removeuser_selection = '\0';
+					 removeuser_prev_selection = '\0';
+					 removeuser_password_fails = 0;
+					 user_to_remove = 5;
+					 removeusers = removeuser_select;
+				 }
+			 
+				 else{
+					 removeusers_flag = 0;
+					 removeusers = removeusers_init;
+				 }
+			 }
+		 
+			 else{
+				 removeusers = removeusers_init;
+			 }
+		 
+			 break;
+		 
+		 case removeuser_select:
+			 if(removeuser_selection < number_of_users && removeusers_flag){
+				 user_to_remove = removeuser_selection;
+				 nokia_lcd_clear();
+				 nokia_lcd_write_string("Enter",1);
+				 nokia_lcd_set_cursor(0,10);
+				 nokia_lcd_write_string("Password: ",1);
+				 nokia_lcd_write_char(removeuser_password_fails + '0',1);
+				 nokia_lcd_set_cursor(0,20);
+				 nokia_lcd_write_string("*",1);
+				 nokia_lcd_render();
+				 removeuser_password_fails = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '*';
+				 removeusers = removeuser_password;
+			 }
+			 
+			 else if(!removeusers_flag){
+				 removeuser_password_fails = 0;
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '\0';
+				 main_menu_display();
+				 removeusers = removeusers_init;
+			 }
+			 
+			 else{
+				 removeusers = removeuser_select;
+			 }
+		 
+			 break;
+		 
+		 case removeuser_password:
+			 if(removeuser_password_fails == 0 && removeusers_flag){
+				 nokia_lcd_clear();
+				 nokia_lcd_write_string("Remove",1);
+				 nokia_lcd_set_cursor(0,10);
+				 nokia_lcd_write_string(List_of_Users[user_to_remove].name,1);
+				 nokia_lcd_set_cursor(0,20);
+				 nokia_lcd_write_string("from system?",1);
+				 nokia_lcd_set_cursor(0,30);
+				 nokia_lcd_write_string("* = no",1);
+				 nokia_lcd_set_cursor(0,40);
+				 nokia_lcd_write_string("# = yes",1);
+				 nokia_lcd_render();
+				 removeusers = removeuser_confirm;
+			 }
+		 
+			 else if(removeuser_password_fails == 3 && removeusers_flag){
+				 removeuser_password_fails = 0;
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '\0';
+				 removeusers_flag = 0;
+				 main_menu_display();
+				 removeusers = removeusers_init;
+			 }
+		 
+			 else if(removeuser_password_fails != 0 && removeuser_password_fails != 3 && removeusers_flag){
+				 nokia_lcd_clear();
+				 nokia_lcd_write_string("Enter",1);
+				 nokia_lcd_set_cursor(0,10);
+				 nokia_lcd_write_string("Password: ",1);
+				 nokia_lcd_write_char(removeuser_password_fails + '0',1);
+				 nokia_lcd_set_cursor(0,20);
+				 nokia_lcd_write_string("*",1);
+				 nokia_lcd_render();
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '*';
+				 removeusers = removeuser_password;
+			 }
+		 
+			 else if(!removeusers_flag){
+				 removeuser_password_fails = 0;
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '\0';
+				 removeusers = removeusers_init;
+			 }
+			 break;
+		 
+		 case removeuser_confirm:
+			 if(removeuser_selection == '#'){
+				 if(user_to_remove == 0){
+					 for(unsigned char i = 0; i < 3; ++i){
+						 swap_users(i,i+1);
+					 }
+					 --number_of_users;
+				 }
+			 
+				 else if(user_to_remove == 1){
+					 for(unsigned char i = 1; i < 3; ++i){
+						 swap_users(i,i+1);
+					 }
+					 --number_of_users;
+				 }
+			 
+				 else if(user_to_remove == 2){
+					 for(unsigned char i = 2; i < 3; ++i){
+						 swap_users(i,i+1);
+					 }
+					 --number_of_users;
+				 }
+			 
+				 else if(user_to_remove == 3){
+					 --number_of_users;
+				 }
+			 
+				 
+				 removeuser_password_fails = 0;
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '\0';
+				 removeusers_flag = 0;
+				 main_menu_display();
+				 removeusers = removeusers_init;
+			 }
+		 
+			 else if(removeuser_selection == '*'){
+				 removeusers_intro();
+				 removeuser_password_fails = 0;
+				 password_size = 0;
+				 for(unsigned char i = 0; i < 8; ++i){
+					 temporary_password[i] = '\0';
+				 }
+				 temporary_password[0] = '\0';
+			 
+				 removeusers = removeusers_init;
+			 }
+		 
+			 break;
+		 
+		 default:
+			 removeusers = removeusers_init;
+			 break;
+	 }
+ }
+
+ void RemoveUsersTask()
+ {
+	 RemoveUsers_Init();
+	 for(;;)
+	 {
+		 RemoveUsers_Tick();
+		 vTaskDelay(100);
+	 }
+ }
+
+ void RemoveUsersPulse(unsigned portBASE_TYPE Priority)
+ {
+	 xTaskCreate(RemoveUsersTask, (signed portCHAR *)"RemoveUsersTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+ }
+ 
+ 
+ ////////// Removing A User State Machine //////////
+ 
  
 int main(void) 
 {
@@ -1110,6 +1494,7 @@ int main(void)
     //Start Tasks  
     MainMenuPulse(1);
 	AddUserPulse(1);
+	RemoveUsersPulse(1);
     //RunSchedular 
     vTaskStartScheduler(); 
 	return 0; 
