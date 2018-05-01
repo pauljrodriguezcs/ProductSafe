@@ -101,8 +101,8 @@ void adduser_name_display(const char* str){
 
 
 
-//enum AddUserState {username, userweight, usergender, userpassword, userconfirm} adduser_state;
 enum AddUserState {username,userweight, usergender, userpassword, confirmpassword, adduser_finished} adduser_state;
+	
 char user_name[14] = "_";
 char weight_output[5] = "_";
 unsigned char user_name_size = 0;	
@@ -124,6 +124,7 @@ unsigned char password_verification(){
 	
 	return 1;
 }
+
 void AddUser_Init(){
 	nokia_lcd_clear();
 	nokia_lcd_write_string("Enter Name",1);
