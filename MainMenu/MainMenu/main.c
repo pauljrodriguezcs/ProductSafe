@@ -544,7 +544,7 @@ enum AddUserState {adduser_init, username,userweight, usergender, userpassword, 
 char user_name[14] = "_";
 char weight_output[5] = "_";
 unsigned char user_name_size = 0;
-unsigned char user_weight = 0;
+unsigned int user_weight = 0;
 unsigned char user_gender = 0;
 char user_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 char user_compare_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
