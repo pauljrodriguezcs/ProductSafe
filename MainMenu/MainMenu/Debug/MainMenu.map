@@ -27,6 +27,7 @@ Allocating common symbols
 Common symbol       size              file
 
 system_init         0x1               main.o
+user_verify_state   0x1               main.o
 adduser_state       0x1               main.o
 add_drink_state     0x1               main.o
 replace_drink_state
@@ -108,6 +109,8 @@ Discarded input sections
  .text.replace_drink_success
                 0x00000000       0x26 main.o
  .text.ReplaceDrink_Init
+                0x00000000        0x6 main.o
+ .text.UserVerify_Init
                 0x00000000        0x6 main.o
  .bss.key_door_sensor
                 0x00000000        0x1 main.o
@@ -472,7 +475,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0x3bdc
+.text           0x00000000     0x41d0
  *(.vectors)
  .vectors       0x00000000       0x8c C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
                 0x00000000                __vector_default
@@ -482,50 +485,50 @@ END GROUP
  .progmem.gcc_sw_table.MainMenu_Tick
                 0x0000008c       0x30 main.o
  .progmem.gcc_sw_table.AddUser_Tick
-                0x000000bc       0x38 main.o
+                0x000000bc       0x3e main.o
  .progmem.gcc_sw_table.AddDrink_Tick
-                0x000000f4        0xe main.o
-                0x00000102                . = ALIGN (0x2)
-                0x00000102                __trampolines_start = .
+                0x000000fa       0x24 main.o
+                0x0000011e                . = ALIGN (0x2)
+                0x0000011e                __trampolines_start = .
  *(.trampolines)
- .trampolines   0x00000102        0x0 linker stubs
+ .trampolines   0x0000011e        0x0 linker stubs
  *(.trampolines*)
-                0x00000102                __trampolines_end = .
+                0x0000011e                __trampolines_end = .
  *libprintf_flt.a:*(.progmem.data)
  *libc.a:*(.progmem.data)
  *(.progmem*)
  .progmem.data.CHARSET
-                0x00000102      0x1e0 nokia5110.o
-                0x00000102                CHARSET
-                0x000002e2                . = ALIGN (0x2)
+                0x0000011e      0x1e0 nokia5110.o
+                0x0000011e                CHARSET
+                0x000002fe                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
  *(.lowtext)
  *(.lowtext*)
-                0x000002e2                __ctors_start = .
+                0x000002fe                __ctors_start = .
  *(.ctors)
-                0x000002e2                __ctors_end = .
-                0x000002e2                __dtors_start = .
+                0x000002fe                __ctors_end = .
+                0x000002fe                __dtors_start = .
  *(.dtors)
-                0x000002e2                __dtors_end = .
+                0x000002fe                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x000002e2        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
-                0x000002e2                __init
+ .init0         0x000002fe        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
+                0x000002fe                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x000002e2        0xc C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
+ .init2         0x000002fe        0xc C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
  *(.init2)
  *(.init3)
  *(.init3)
  *(.init4)
- .init4         0x000002ee       0x1a c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_copy_data.o)
-                0x000002ee                __do_copy_data
- .init4         0x00000308       0x10 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_clear_bss.o)
-                0x00000308                __do_clear_bss
+ .init4         0x0000030a       0x1a c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_copy_data.o)
+                0x0000030a                __do_copy_data
+ .init4         0x00000324       0x10 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_clear_bss.o)
+                0x00000324                __do_clear_bss
  *(.init4)
  *(.init5)
  *(.init5)
@@ -536,255 +539,264 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x00000318        0x8 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
+ .init9         0x00000334        0x8 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
  *(.init9)
  *(.text)
- .text          0x00000320        0x2 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
-                0x00000320                __vector_22
-                0x00000320                __vector_28
-                0x00000320                __vector_1
-                0x00000320                __vector_32
-                0x00000320                __vector_34
-                0x00000320                __vector_24
-                0x00000320                __vector_12
-                0x00000320                __bad_interrupt
-                0x00000320                __vector_6
-                0x00000320                __vector_31
-                0x00000320                __vector_3
-                0x00000320                __vector_23
-                0x00000320                __vector_30
-                0x00000320                __vector_25
-                0x00000320                __vector_11
-                0x00000320                __vector_17
-                0x00000320                __vector_19
-                0x00000320                __vector_7
-                0x00000320                __vector_27
-                0x00000320                __vector_5
-                0x00000320                __vector_33
-                0x00000320                __vector_4
-                0x00000320                __vector_9
-                0x00000320                __vector_2
-                0x00000320                __vector_21
-                0x00000320                __vector_15
-                0x00000320                __vector_29
-                0x00000320                __vector_8
-                0x00000320                __vector_26
-                0x00000320                __vector_14
-                0x00000320                __vector_10
-                0x00000320                __vector_16
-                0x00000320                __vector_18
-                0x00000320                __vector_20
-                0x00000322                . = ALIGN (0x2)
+ .text          0x0000033c        0x2 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
+                0x0000033c                __vector_22
+                0x0000033c                __vector_28
+                0x0000033c                __vector_1
+                0x0000033c                __vector_32
+                0x0000033c                __vector_34
+                0x0000033c                __vector_24
+                0x0000033c                __vector_12
+                0x0000033c                __bad_interrupt
+                0x0000033c                __vector_6
+                0x0000033c                __vector_31
+                0x0000033c                __vector_3
+                0x0000033c                __vector_23
+                0x0000033c                __vector_30
+                0x0000033c                __vector_25
+                0x0000033c                __vector_11
+                0x0000033c                __vector_17
+                0x0000033c                __vector_19
+                0x0000033c                __vector_7
+                0x0000033c                __vector_27
+                0x0000033c                __vector_5
+                0x0000033c                __vector_33
+                0x0000033c                __vector_4
+                0x0000033c                __vector_9
+                0x0000033c                __vector_2
+                0x0000033c                __vector_21
+                0x0000033c                __vector_15
+                0x0000033c                __vector_29
+                0x0000033c                __vector_8
+                0x0000033c                __vector_26
+                0x0000033c                __vector_14
+                0x0000033c                __vector_10
+                0x0000033c                __vector_16
+                0x0000033c                __vector_18
+                0x0000033c                __vector_20
+                0x0000033e                . = ALIGN (0x2)
  *(.text.*)
  .text.pvPortMalloc
-                0x00000322       0x4c heap_1.o
-                0x00000322                pvPortMalloc
+                0x0000033e       0x4c heap_1.o
+                0x0000033e                pvPortMalloc
  .text.vPortFree
-                0x0000036e        0x2 heap_1.o
-                0x0000036e                vPortFree
+                0x0000038a        0x2 heap_1.o
+                0x0000038a                vPortFree
  .text.vListInitialise
-                0x00000370       0x1c list.o
-                0x00000370                vListInitialise
+                0x0000038c       0x1c list.o
+                0x0000038c                vListInitialise
  .text.vListInitialiseItem
-                0x0000038c        0x8 list.o
-                0x0000038c                vListInitialiseItem
+                0x000003a8        0x8 list.o
+                0x000003a8                vListInitialiseItem
  .text.vListInsertEnd
-                0x00000394       0x4e list.o
-                0x00000394                vListInsertEnd
+                0x000003b0       0x4e list.o
+                0x000003b0                vListInsertEnd
  .text.vListInsert
-                0x000003e2       0x76 list.o
-                0x000003e2                vListInsert
+                0x000003fe       0x76 list.o
+                0x000003fe                vListInsert
  .text.vListRemove
-                0x00000458       0x4c list.o
-                0x00000458                vListRemove
+                0x00000474       0x4c list.o
+                0x00000474                vListRemove
  .text.main_menu_display
-                0x000004a4       0x4a main.o
-                0x000004a4                main_menu_display
+                0x000004c0       0x4a main.o
+                0x000004c0                main_menu_display
  .text.settings_submenu_display
-                0x000004ee       0x5c main.o
-                0x000004ee                settings_submenu_display
+                0x0000050a       0x5c main.o
+                0x0000050a                settings_submenu_display
  .text.drinks_submenu_display
-                0x0000054a       0x5c main.o
-                0x0000054a                drinks_submenu_display
+                0x00000566       0x5c main.o
+                0x00000566                drinks_submenu_display
  .text.user_submenu_display
-                0x000005a6       0x4a main.o
-                0x000005a6                user_submenu_display
+                0x000005c2       0x4a main.o
+                0x000005c2                user_submenu_display
  .text.adduser_name_display
-                0x000005f0       0x2e main.o
-                0x000005f0                adduser_name_display
+                0x0000060c       0x2e main.o
+                0x0000060c                adduser_name_display
  .text.GetKeypadKey
-                0x0000061e       0xca main.o
-                0x0000061e                GetKeypadKey
+                0x0000063a       0xca main.o
+                0x0000063a                GetKeypadKey
  .text.add_drink_display
-                0x000006e8       0x5c main.o
-                0x000006e8                add_drink_display
+                0x00000704       0x5c main.o
+                0x00000704                add_drink_display
  .text.add_drink_volume_display
-                0x00000744       0x26 main.o
-                0x00000744                add_drink_volume_display
+                0x00000760       0x26 main.o
+                0x00000760                add_drink_volume_display
  .text.add_drink_ac_display
-                0x0000076a       0x26 main.o
-                0x0000076a                add_drink_ac_display
+                0x00000786       0x26 main.o
+                0x00000786                add_drink_ac_display
  .text.add_drink_variable_reset
-                0x00000790       0x18 main.o
-                0x00000790                add_drink_variable_reset
+                0x000007ac       0x18 main.o
+                0x000007ac                add_drink_variable_reset
  .text.removeusers_intro
-                0x000007a8      0x182 main.o
-                0x000007a8                removeusers_intro
+                0x000007c4      0x192 main.o
+                0x000007c4                removeusers_intro
  .text.AlphaNumPad
-                0x0000092a      0x1b6 main.o
-                0x0000092a                AlphaNumPad
+                0x00000956      0x1b6 main.o
+                0x00000956                AlphaNumPad
  .text.MainMenu_Init
-                0x00000ae0        0x8 main.o
-                0x00000ae0                MainMenu_Init
+                0x00000b0c        0x8 main.o
+                0x00000b0c                MainMenu_Init
  .text.MainMenu_Tick
-                0x00000ae8      0x41c main.o
-                0x00000ae8                MainMenu_Tick
+                0x00000b14      0x41c main.o
+                0x00000b14                MainMenu_Tick
  .text.MainMenuTask
-                0x00000f04        0xe main.o
-                0x00000f04                MainMenuTask
+                0x00000f30        0xe main.o
+                0x00000f30                MainMenuTask
  .text.MainMenuPulse
-                0x00000f12       0x40 main.o
-                0x00000f12                MainMenuPulse
+                0x00000f3e       0x40 main.o
+                0x00000f3e                MainMenuPulse
  .text.password_verification
-                0x00000f52       0x32 main.o
-                0x00000f52                password_verification
+                0x00000f7e       0x32 main.o
+                0x00000f7e                password_verification
  .text.AddUser_Tick
-                0x00000f84      0xc1a main.o
-                0x00000f84                AddUser_Tick
+                0x00000fb0      0xc5a main.o
+                0x00000fb0                AddUser_Tick
  .text.AddUserTask
-                0x00001b9e       0x10 main.o
-                0x00001b9e                AddUserTask
+                0x00001c0a       0x10 main.o
+                0x00001c0a                AddUserTask
  .text.AddUserPulse
-                0x00001bae       0x40 main.o
-                0x00001bae                AddUserPulse
+                0x00001c1a       0x40 main.o
+                0x00001c1a                AddUserPulse
  .text.swap_users
-                0x00001bee      0x116 main.o
-                0x00001bee                swap_users
+                0x00001c5a      0x116 main.o
+                0x00001c5a                swap_users
  .text.remove_password_verification
-                0x00001d04       0x4a main.o
-                0x00001d04                remove_password_verification
+                0x00001d70       0x4a main.o
+                0x00001d70                remove_password_verification
  .text.RemoveUsers_Tick
-                0x00001d4e      0x53e main.o
-                0x00001d4e                RemoveUsers_Tick
+                0x00001dba      0x5c4 main.o
+                0x00001dba                RemoveUsers_Tick
  .text.RemoveUsersTask
-                0x0000228c       0x10 main.o
-                0x0000228c                RemoveUsersTask
+                0x0000237e       0x10 main.o
+                0x0000237e                RemoveUsersTask
  .text.RemoveUsersPulse
-                0x0000229c       0x40 main.o
-                0x0000229c                RemoveUsersPulse
+                0x0000238e       0x40 main.o
+                0x0000238e                RemoveUsersPulse
  .text.AddDrink_Tick
-                0x000022dc      0x9da main.o
-                0x000022dc                AddDrink_Tick
+                0x000023ce      0xaea main.o
+                0x000023ce                AddDrink_Tick
  .text.AddDrinkTask
-                0x00002cb6        0xe main.o
-                0x00002cb6                AddDrinkTask
+                0x00002eb8       0x10 main.o
+                0x00002eb8                AddDrinkTask
  .text.AddDrinkPulse
-                0x00002cc4       0x3e main.o
-                0x00002cc4                AddDrinkPulse
+                0x00002ec8       0x3e main.o
+                0x00002ec8                AddDrinkPulse
  .text.replace_drink_error
-                0x00002d02        0xe main.o
-                0x00002d02                replace_drink_error
+                0x00002f06        0xe main.o
+                0x00002f06                replace_drink_error
  .text.ReplaceDrink_Tick
-                0x00002d10      0x11e main.o
-                0x00002d10                ReplaceDrink_Tick
+                0x00002f14      0x11e main.o
+                0x00002f14                ReplaceDrink_Tick
  .text.ReplaceDrinkTask
-                0x00002e2e        0x8 main.o
-                0x00002e2e                ReplaceDrinkTask
+                0x00003032        0x8 main.o
+                0x00003032                ReplaceDrinkTask
  .text.ReplaceDrinkPulse
-                0x00002e36       0x3e main.o
-                0x00002e36                ReplaceDrinkPulse
- .text.main     0x00002e74       0x3a main.o
-                0x00002e74                main
- .text.write    0x00002eae       0x3c nokia5110.o
+                0x0000303a       0x3e main.o
+                0x0000303a                ReplaceDrinkPulse
+ .text.UserVerify_Tick
+                0x00003078      0x39e main.o
+                0x00003078                UserVerify_Tick
+ .text.UserVerifyTask
+                0x00003416        0xe main.o
+                0x00003416                UserVerifyTask
+ .text.UserVerifyPulse
+                0x00003424       0x3e main.o
+                0x00003424                UserVerifyPulse
+ .text.main     0x00003462       0x40 main.o
+                0x00003462                main
+ .text.write    0x000034a2       0x3c nokia5110.o
  .text.write_cmd
-                0x00002eea        0x6 nokia5110.o
+                0x000034de        0x6 nokia5110.o
  .text.nokia_lcd_init
-                0x00002ef0       0x6c nokia5110.o
-                0x00002ef0                nokia_lcd_init
+                0x000034e4       0x6c nokia5110.o
+                0x000034e4                nokia_lcd_init
  .text.nokia_lcd_clear
-                0x00002f5c       0x22 nokia5110.o
-                0x00002f5c                nokia_lcd_clear
+                0x00003550       0x22 nokia5110.o
+                0x00003550                nokia_lcd_clear
  .text.nokia_lcd_set_pixel
-                0x00002f7e       0x56 nokia5110.o
-                0x00002f7e                nokia_lcd_set_pixel
+                0x00003572       0x56 nokia5110.o
+                0x00003572                nokia_lcd_set_pixel
  .text.nokia_lcd_write_char
-                0x00002fd4      0x154 nokia5110.o
-                0x00002fd4                nokia_lcd_write_char
+                0x000035c8      0x154 nokia5110.o
+                0x000035c8                nokia_lcd_write_char
  .text.nokia_lcd_write_string
-                0x00003128       0x24 nokia5110.o
-                0x00003128                nokia_lcd_write_string
+                0x0000371c       0x24 nokia5110.o
+                0x0000371c                nokia_lcd_write_string
  .text.nokia_lcd_set_cursor
-                0x0000314c        0xa nokia5110.o
-                0x0000314c                nokia_lcd_set_cursor
+                0x00003740        0xa nokia5110.o
+                0x00003740                nokia_lcd_set_cursor
  .text.nokia_lcd_render
-                0x00003156       0x2e nokia5110.o
-                0x00003156                nokia_lcd_render
+                0x0000374a       0x2e nokia5110.o
+                0x0000374a                nokia_lcd_render
  .text.pxPortInitialiseStack
-                0x00003184       0xd8 port.o
-                0x00003184                pxPortInitialiseStack
+                0x00003778       0xd8 port.o
+                0x00003778                pxPortInitialiseStack
  .text.xPortStartScheduler
-                0x0000325c       0x74 port.o
-                0x0000325c                xPortStartScheduler
+                0x00003850       0x74 port.o
+                0x00003850                xPortStartScheduler
  .text.vPortYield
-                0x000032d0       0xb0 port.o
-                0x000032d0                vPortYield
+                0x000038c4       0xb0 port.o
+                0x000038c4                vPortYield
  .text.vPortYieldFromTick
-                0x00003380       0xb2 port.o
-                0x00003380                vPortYieldFromTick
+                0x00003974       0xb2 port.o
+                0x00003974                vPortYieldFromTick
  .text.__vector_13
-                0x00003432        0x4 port.o
-                0x00003432                __vector_13
+                0x00003a26        0x4 port.o
+                0x00003a26                __vector_13
  .text.prvAddCurrentTaskToDelayedList
-                0x00003436       0x6e tasks.o
+                0x00003a2a       0x6e tasks.o
  .text.xTaskGenericCreate
-                0x000034a4      0x202 tasks.o
-                0x000034a4                xTaskGenericCreate
+                0x00003a98      0x202 tasks.o
+                0x00003a98                xTaskGenericCreate
  .text.vTaskStartScheduler
-                0x000036a6       0x52 tasks.o
-                0x000036a6                vTaskStartScheduler
+                0x00003c9a       0x52 tasks.o
+                0x00003c9a                vTaskStartScheduler
  .text.vTaskSuspendAll
-                0x000036f8        0xc tasks.o
-                0x000036f8                vTaskSuspendAll
+                0x00003cec        0xc tasks.o
+                0x00003cec                vTaskSuspendAll
  .text.vTaskIncrementTick
-                0x00003704      0x188 tasks.o
-                0x00003704                vTaskIncrementTick
+                0x00003cf8      0x188 tasks.o
+                0x00003cf8                vTaskIncrementTick
  .text.xTaskResumeAll
-                0x0000388c      0x108 tasks.o
-                0x0000388c                xTaskResumeAll
+                0x00003e80      0x108 tasks.o
+                0x00003e80                xTaskResumeAll
  .text.vTaskDelay
-                0x00003994       0x38 tasks.o
-                0x00003994                vTaskDelay
+                0x00003f88       0x38 tasks.o
+                0x00003f88                vTaskDelay
  .text.prvIdleTask
-                0x000039cc       0x72 tasks.o
+                0x00003fc0       0x72 tasks.o
  .text.vTaskSwitchContext
-                0x00003a3e       0xd8 tasks.o
-                0x00003a3e                vTaskSwitchContext
+                0x00004032       0xd8 tasks.o
+                0x00004032                vTaskSwitchContext
  .text.libgcc.div
-                0x00003b16       0x18 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodqi4.o)
-                0x00003b16                __udivmodqi4
+                0x0000410a       0x18 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodqi4.o)
+                0x0000410a                __udivmodqi4
  .text.libgcc.div
-                0x00003b2e       0x28 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
-                0x00003b2e                __udivmodhi4
+                0x00004122       0x28 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_udivmodhi4.o)
+                0x00004122                __udivmodhi4
  .text.libgcc.div
-                0x00003b56       0x26 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_divmodhi4.o)
-                0x00003b56                _div
-                0x00003b56                __divmodhi4
- .text.libgcc   0x00003b7c       0x12 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_tablejump2.o)
-                0x00003b7c                __tablejump2__
+                0x0000414a       0x26 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_divmodhi4.o)
+                0x0000414a                _div
+                0x0000414a                __divmodhi4
+ .text.libgcc   0x00004170       0x12 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_tablejump2.o)
+                0x00004170                __tablejump2__
  .text.libgcc.mul
-                0x00003b8e       0x1e c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_umulhisi3.o)
-                0x00003b8e                __umulhisi3
+                0x00004182       0x1e c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_umulhisi3.o)
+                0x00004182                __umulhisi3
  .text.avr-libc
-                0x00003bac        0xe c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(memset.o)
-                0x00003bac                memset
+                0x000041a0        0xe c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(memset.o)
+                0x000041a0                memset
  .text.avr-libc
-                0x00003bba       0x1e c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(strncpy.o)
-                0x00003bba                strncpy
-                0x00003bd8                . = ALIGN (0x2)
+                0x000041ae       0x1e c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr51\libc.a(strncpy.o)
+                0x000041ae                strncpy
+                0x000041cc                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x00003bd8        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
-                0x00003bd8                _exit
-                0x00003bd8                exit
+ .fini9         0x000041cc        0x0 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
+                0x000041cc                _exit
+                0x000041cc                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -803,11 +815,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x00003bd8        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
+ .fini0         0x000041cc        0x4 c:/program files (x86)/atmel/studio/7.0/toolchain/avr8/avr8-gnu-toolchain/bin/../lib/gcc/avr/5.4.0/avr51\libgcc.a(_exit.o)
  *(.fini0)
-                0x00003bdc                _etext = .
+                0x000041d0                _etext = .
 
-.data           0x00800100      0x3e2 load address 0x00003bdc
+.data           0x00800100      0x44e load address 0x000041d0
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -851,194 +863,212 @@ END GROUP
                 0x00800149        0xc main.o
                 0x00800149                drink_names
  .data.List_of_Users
-                0x00800155       0x68 main.o
+                0x00800155       0x6c main.o
                 0x00800155                List_of_Users
  .data.xNextTaskUnblockTime
-                0x008001bd        0x2 tasks.o
+                0x008001c1        0x2 tasks.o
  *(.gnu.linkonce.d*)
  *(.rodata)
  *(.rodata*)
  .rodata.str1.1
-                0x008001bf      0x31d main.o
-                                0x37d (size before relaxing)
+                0x008001c3      0x385 main.o
+                                0x3f2 (size before relaxing)
  .rodata.str1.1
-                0x008004dc        0x5 tasks.o
+                0x00800548        0x5 tasks.o
  *(.gnu.linkonce.r*)
-                0x008004e2                . = ALIGN (0x2)
- *fill*         0x008004e1        0x1 
-                0x008004e2                _edata = .
-                0x008004e2                PROVIDE (__data_end, .)
+                0x0080054e                . = ALIGN (0x2)
+ *fill*         0x0080054d        0x1 
+                0x0080054e                _edata = .
+                0x0080054e                PROVIDE (__data_end, .)
 
-.bss            0x008004e2      0x87b
-                0x008004e2                PROVIDE (__bss_start, .)
+.bss            0x0080054e      0x882
+                0x0080054e                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
  .bss.xNextFreeByte
-                0x008004e2        0x2 heap_1.o
- .bss.xHeap     0x008004e4      0x5dc heap_1.o
+                0x0080054e        0x2 heap_1.o
+ .bss.xHeap     0x00800550      0x5dc heap_1.o
+ .bss.uv_password_fails
+                0x00800b2c        0x1 main.o
+                0x00800b2c                uv_password_fails
+ .bss.uv_prev_select
+                0x00800b2d        0x1 main.o
+                0x00800b2d                uv_prev_select
+ .bss.uv_selection
+                0x00800b2e        0x1 main.o
+                0x00800b2e                uv_selection
  .bss.temporary_password
-                0x00800ac0        0x9 main.o
-                0x00800ac0                temporary_password
+                0x00800b2f        0x9 main.o
+                0x00800b2f                temporary_password
  .bss.removeuser_password_fails
-                0x00800ac9        0x1 main.o
-                0x00800ac9                removeuser_password_fails
+                0x00800b38        0x1 main.o
+                0x00800b38                removeuser_password_fails
  .bss.removeuser_prev_selection
-                0x00800aca        0x1 main.o
-                0x00800aca                removeuser_prev_selection
+                0x00800b39        0x1 main.o
+                0x00800b39                removeuser_prev_selection
  .bss.removeuser_selection
-                0x00800acb        0x1 main.o
-                0x00800acb                removeuser_selection
+                0x00800b3a        0x1 main.o
+                0x00800b3a                removeuser_selection
  .bss.adding_user_finished
-                0x00800acc        0x1 main.o
-                0x00800acc                adding_user_finished
+                0x00800b3b        0x1 main.o
+                0x00800b3b                adding_user_finished
  .bss.password_attempt_fails
-                0x00800acd        0x1 main.o
-                0x00800acd                password_attempt_fails
+                0x00800b3c        0x1 main.o
+                0x00800b3c                password_attempt_fails
  .bss.previous_character
-                0x00800ace        0x1 main.o
-                0x00800ace                previous_character
+                0x00800b3d        0x1 main.o
+                0x00800b3d                previous_character
  .bss.keypad_character
-                0x00800acf        0x1 main.o
-                0x00800acf                keypad_character
+                0x00800b3e        0x1 main.o
+                0x00800b3e                keypad_character
  .bss.password_size
-                0x00800ad0        0x1 main.o
-                0x00800ad0                password_size
+                0x00800b3f        0x1 main.o
+                0x00800b3f                password_size
  .bss.user_compare_password
-                0x00800ad1        0x9 main.o
-                0x00800ad1                user_compare_password
+                0x00800b40        0x9 main.o
+                0x00800b40                user_compare_password
  .bss.user_password
-                0x00800ada        0x9 main.o
-                0x00800ada                user_password
+                0x00800b49        0x9 main.o
+                0x00800b49                user_password
+ .bss.user_key  0x00800b52        0x1 main.o
+                0x00800b52                user_key
  .bss.user_gender
-                0x00800ae3        0x1 main.o
-                0x00800ae3                user_gender
+                0x00800b53        0x1 main.o
+                0x00800b53                user_gender
  .bss.user_weight
-                0x00800ae4        0x2 main.o
-                0x00800ae4                user_weight
+                0x00800b54        0x2 main.o
+                0x00800b54                user_weight
  .bss.user_name_size
-                0x00800ae6        0x1 main.o
-                0x00800ae6                user_name_size
+                0x00800b56        0x1 main.o
+                0x00800b56                user_name_size
  .bss.auto_timer
-                0x00800ae7        0x4 main.o
-                0x00800ae7                auto_timer
+                0x00800b57        0x4 main.o
+                0x00800b57                auto_timer
  .bss.num_times_key_pushed
-                0x00800aeb        0x2 main.o
-                0x00800aeb                num_times_key_pushed
+                0x00800b5b        0x2 main.o
+                0x00800b5b                num_times_key_pushed
  .bss.previous_key_ANP
-                0x00800aed        0x1 main.o
-                0x00800aed                previous_key_ANP
+                0x00800b5d        0x1 main.o
+                0x00800b5d                previous_key_ANP
  .bss.replace_drink_flag
-                0x00800aee        0x1 main.o
-                0x00800aee                replace_drink_flag
+                0x00800b5e        0x1 main.o
+                0x00800b5e                replace_drink_flag
  .bss.keys_in_safe_flag
-                0x00800aef        0x1 main.o
-                0x00800aef                keys_in_safe_flag
+                0x00800b5f        0x1 main.o
+                0x00800b5f                keys_in_safe_flag
  .bss.drink_alcohol_content
-                0x00800af0        0x1 main.o
-                0x00800af0                drink_alcohol_content
+                0x00800b60        0x1 main.o
+                0x00800b60                drink_alcohol_content
  .bss.volume_of_drink
-                0x00800af1        0x2 main.o
-                0x00800af1                volume_of_drink
+                0x00800b61        0x2 main.o
+                0x00800b61                volume_of_drink
  .bss.type_of_drink
-                0x00800af3        0x1 main.o
-                0x00800af3                type_of_drink
+                0x00800b63        0x1 main.o
+                0x00800b63                type_of_drink
  .bss.add_drink_prev_select
-                0x00800af4        0x1 main.o
-                0x00800af4                add_drink_prev_select
+                0x00800b64        0x1 main.o
+                0x00800b64                add_drink_prev_select
  .bss.add_drink_selection
-                0x00800af5        0x1 main.o
-                0x00800af5                add_drink_selection
+                0x00800b65        0x1 main.o
+                0x00800b65                add_drink_selection
  .bss.add_drink_flag
-                0x00800af6        0x1 main.o
-                0x00800af6                add_drink_flag
+                0x00800b66        0x1 main.o
+                0x00800b66                add_drink_flag
  .bss.liquor_door_sensor
-                0x00800af7        0x1 main.o
-                0x00800af7                liquor_door_sensor
+                0x00800b67        0x1 main.o
+                0x00800b67                liquor_door_sensor
  .bss.number_of_users
-                0x00800af8        0x1 main.o
-                0x00800af8                number_of_users
+                0x00800b68        0x1 main.o
+                0x00800b68                number_of_users
+ .bss.correct_user_credentials
+                0x00800b69        0x1 main.o
+                0x00800b69                correct_user_credentials
+ .bss.user_verify_flag
+                0x00800b6a        0x1 main.o
+                0x00800b6a                user_verify_flag
  .bss.removeusers_flag
-                0x00800af9        0x1 main.o
-                0x00800af9                removeusers_flag
+                0x00800b6b        0x1 main.o
+                0x00800b6b                removeusers_flag
  .bss.adding_user_flag
-                0x00800afa        0x1 main.o
-                0x00800afa                adding_user_flag
+                0x00800b6c        0x1 main.o
+                0x00800b6c                adding_user_flag
  .bss.user_menu_selection
-                0x00800afb        0x1 main.o
-                0x00800afb                user_menu_selection
+                0x00800b6d        0x1 main.o
+                0x00800b6d                user_menu_selection
  .bss.drink_menu_selection
-                0x00800afc        0x1 main.o
-                0x00800afc                drink_menu_selection
+                0x00800b6e        0x1 main.o
+                0x00800b6e                drink_menu_selection
  .bss.settings_menu_selection
-                0x00800afd        0x1 main.o
-                0x00800afd                settings_menu_selection
+                0x00800b6f        0x1 main.o
+                0x00800b6f                settings_menu_selection
  .bss.temp_menu_selection
-                0x00800afe        0x1 main.o
-                0x00800afe                temp_menu_selection
+                0x00800b70        0x1 main.o
+                0x00800b70                temp_menu_selection
  .bss.main_menu_selection
-                0x00800aff        0x1 main.o
-                0x00800aff                main_menu_selection
+                0x00800b71        0x1 main.o
+                0x00800b71                main_menu_selection
  .bss.nokia_lcd
-                0x00800b00      0x1fa nokia5110.o
+                0x00800b72      0x1fa nokia5110.o
  .bss.uxTaskNumber
-                0x00800cfa        0x1 tasks.o
+                0x00800d6c        0x1 tasks.o
  .bss.xNumOfOverflows
-                0x00800cfb        0x1 tasks.o
+                0x00800d6d        0x1 tasks.o
  .bss.xMissedYield
-                0x00800cfc        0x1 tasks.o
+                0x00800d6e        0x1 tasks.o
  .bss.uxMissedTicks
-                0x00800cfd        0x1 tasks.o
+                0x00800d6f        0x1 tasks.o
  .bss.uxSchedulerSuspended
-                0x00800cfe        0x1 tasks.o
+                0x00800d70        0x1 tasks.o
  .bss.xSchedulerRunning
-                0x00800cff        0x1 tasks.o
+                0x00800d71        0x1 tasks.o
  .bss.uxTopReadyPriority
-                0x00800d00        0x1 tasks.o
+                0x00800d72        0x1 tasks.o
  .bss.uxTopUsedPriority
-                0x00800d01        0x1 tasks.o
+                0x00800d73        0x1 tasks.o
  .bss.xTickCount
-                0x00800d02        0x2 tasks.o
+                0x00800d74        0x2 tasks.o
  .bss.uxCurrentNumberOfTasks
-                0x00800d04        0x1 tasks.o
+                0x00800d76        0x1 tasks.o
  .bss.uxTasksDeleted
-                0x00800d05        0x1 tasks.o
+                0x00800d77        0x1 tasks.o
  .bss.xTasksWaitingTermination
-                0x00800d06        0x9 tasks.o
+                0x00800d78        0x9 tasks.o
  .bss.xPendingReadyList
-                0x00800d0f        0x9 tasks.o
+                0x00800d81        0x9 tasks.o
  .bss.pxOverflowDelayedTaskList
-                0x00800d18        0x2 tasks.o
+                0x00800d8a        0x2 tasks.o
  .bss.pxDelayedTaskList
-                0x00800d1a        0x2 tasks.o
+                0x00800d8c        0x2 tasks.o
  .bss.xDelayedTaskList2
-                0x00800d1c        0x9 tasks.o
+                0x00800d8e        0x9 tasks.o
  .bss.xDelayedTaskList1
-                0x00800d25        0x9 tasks.o
+                0x00800d97        0x9 tasks.o
  .bss.pxReadyTasksLists
-                0x00800d2e       0x24 tasks.o
+                0x00800da0       0x24 tasks.o
  .bss.pxCurrentTCB
-                0x00800d52        0x2 tasks.o
-                0x00800d52                pxCurrentTCB
+                0x00800dc4        0x2 tasks.o
+                0x00800dc4                pxCurrentTCB
  *(COMMON)
- COMMON         0x00800d54        0x9 main.o
-                0x00800d54                system_init
-                0x00800d55                adduser_state
-                0x00800d56                add_drink_state
-                0x00800d57                replace_drink_state
-                0x00800d58                removeusers
-                0x00800d59                pushed_key_ANP
-                0x00800d5a                main_menu_init
-                0x00800d5b                tmp_pressed_key
-                0x00800d5c                mainmenu_state
-                0x00800d5d                PROVIDE (__bss_end, .)
-                0x00003bdc                __data_load_start = LOADADDR (.data)
-                0x00003fbe                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00800dc6        0xa main.o
+                0x00800dc6                system_init
+                0x00800dc7                user_verify_state
+                0x00800dc8                adduser_state
+                0x00800dc9                add_drink_state
+                0x00800dca                replace_drink_state
+                0x00800dcb                removeusers
+                0x00800dcc                pushed_key_ANP
+                0x00800dcd                main_menu_init
+                0x00800dce                tmp_pressed_key
+                0x00800dcf                mainmenu_state
+                0x00800dd0                PROVIDE (__bss_end, .)
+                0x000041d0                __data_load_start = LOADADDR (.data)
+                0x0000461e                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00800d5d        0x0
+.noinit         0x00800dd0        0x0
                 [!provide]                PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                PROVIDE (__noinit_end, .)
-                0x00800d5d                _end = .
+                0x00800dd0                _end = .
                 [!provide]                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
@@ -1108,33 +1138,33 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000      0x338
+.debug_aranges  0x00000000      0x358
  *(.debug_aranges)
  .debug_aranges
                 0x00000000       0x38 heap_1.o
  .debug_aranges
                 0x00000038       0x40 list.o
  .debug_aranges
-                0x00000078      0x158 main.o
+                0x00000078      0x178 main.o
  .debug_aranges
-                0x000001d0       0x68 nokia5110.o
+                0x000001f0       0x68 nokia5110.o
  .debug_aranges
-                0x00000238       0x48 port.o
+                0x00000258       0x48 port.o
  .debug_aranges
-                0x00000280       0xb8 tasks.o
+                0x000002a0       0xb8 tasks.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x71f8
+.debug_info     0x00000000     0x7b7e
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x792 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
  .debug_info    0x00000792      0x1a7 heap_1.o
  .debug_info    0x00000939      0x2c1 list.o
- .debug_info    0x00000bfa     0x4c80 main.o
- .debug_info    0x0000587a      0x5ea nokia5110.o
- .debug_info    0x00005e64      0x23e port.o
- .debug_info    0x000060a2     0x1156 tasks.o
+ .debug_info    0x00000bfa     0x5606 main.o
+ .debug_info    0x00006200      0x5ea nokia5110.o
+ .debug_info    0x000067ea      0x23e port.o
+ .debug_info    0x00006a28     0x1156 tasks.o
 
 .debug_abbrev   0x00000000     0x12c8
  *(.debug_abbrev)
@@ -1146,49 +1176,49 @@ END GROUP
  .debug_abbrev  0x00000ebb      0x155 port.o
  .debug_abbrev  0x00001010      0x2b8 tasks.o
 
-.debug_line     0x00000000     0x3bd4
+.debug_line     0x00000000     0x410b
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x169 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
  .debug_line    0x00000169      0x18a heap_1.o
  .debug_line    0x000002f3      0x221 list.o
- .debug_line    0x00000514     0x269f main.o
- .debug_line    0x00002bb3      0x3dd nokia5110.o
- .debug_line    0x00002f90      0x340 port.o
- .debug_line    0x000032d0      0x904 tasks.o
+ .debug_line    0x00000514     0x2bd6 main.o
+ .debug_line    0x000030ea      0x3dd nokia5110.o
+ .debug_line    0x000034c7      0x340 port.o
+ .debug_line    0x00003807      0x904 tasks.o
 
-.debug_frame    0x00000000      0x8e8
+.debug_frame    0x00000000      0x968
  *(.debug_frame)
  .debug_frame   0x00000000       0x60 heap_1.o
  .debug_frame   0x00000060       0x7c list.o
- .debug_frame   0x000000dc      0x3f8 main.o
- .debug_frame   0x000004d4      0x130 nokia5110.o
- .debug_frame   0x00000604       0x74 port.o
- .debug_frame   0x00000678      0x270 tasks.o
+ .debug_frame   0x000000dc      0x478 main.o
+ .debug_frame   0x00000554      0x130 nokia5110.o
+ .debug_frame   0x00000684       0x74 port.o
+ .debug_frame   0x000006f8      0x270 tasks.o
 
-.debug_str      0x00000000     0x1664
+.debug_str      0x00000000     0x178c
  *(.debug_str)
  .debug_str     0x00000000      0x296 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.2.150/gcc/dev/atmega1284/avr51/crtatmega1284.o
  .debug_str     0x00000296      0x1ff heap_1.o
                                 0x238 (size before relaxing)
  .debug_str     0x00000495      0x137 list.o
                                 0x2a0 (size before relaxing)
- .debug_str     0x000005cc      0x9c4 main.o
-                                0xb9c (size before relaxing)
- .debug_str     0x00000f90       0xb1 nokia5110.o
+ .debug_str     0x000005cc      0xaec main.o
+                                0xcc4 (size before relaxing)
+ .debug_str     0x000010b8       0xb1 nokia5110.o
                                 0x2ef (size before relaxing)
- .debug_str     0x00001041      0x10a port.o
+ .debug_str     0x00001169      0x10a port.o
                                 0x29e (size before relaxing)
- .debug_str     0x0000114b      0x519 tasks.o
+ .debug_str     0x00001273      0x519 tasks.o
                                 0x898 (size before relaxing)
 
-.debug_loc      0x00000000     0x316a
+.debug_loc      0x00000000     0x3616
  *(.debug_loc)
  .debug_loc     0x00000000       0xf1 heap_1.o
  .debug_loc     0x000000f1       0xfe list.o
- .debug_loc     0x000001ef     0x1aff main.o
- .debug_loc     0x00001cee      0x559 nokia5110.o
- .debug_loc     0x00002247      0x2a0 port.o
- .debug_loc     0x000024e7      0xc83 tasks.o
+ .debug_loc     0x000001ef     0x1fab main.o
+ .debug_loc     0x0000219a      0x559 nokia5110.o
+ .debug_loc     0x000026f3      0x2a0 port.o
+ .debug_loc     0x00002993      0xc83 tasks.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -1208,14 +1238,14 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000      0x370
+.debug_ranges   0x00000000      0x390
  *(.debug_ranges)
  .debug_ranges  0x00000000       0x28 heap_1.o
  .debug_ranges  0x00000028       0x30 list.o
- .debug_ranges  0x00000058      0x178 main.o
- .debug_ranges  0x000001d0       0x78 nokia5110.o
- .debug_ranges  0x00000248       0x38 port.o
- .debug_ranges  0x00000280       0xf0 tasks.o
+ .debug_ranges  0x00000058      0x198 main.o
+ .debug_ranges  0x000001f0       0x78 nokia5110.o
+ .debug_ranges  0x00000268       0x38 port.o
+ .debug_ranges  0x000002a0       0xf0 tasks.o
 
 .debug_macro
  *(.debug_macro)

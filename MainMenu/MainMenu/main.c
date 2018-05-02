@@ -29,6 +29,8 @@ unsigned char drink_menu_selection = '\0';
 unsigned char user_menu_selection = '\0';
 unsigned char adding_user_flag = 0;
 unsigned char removeusers_flag = 0;
+unsigned char user_verify_flag = 0;
+unsigned char correct_user_credentials = 0;
 unsigned char number_of_users = 0;
 
 //// Global lock signal variables and lock sensor variables
@@ -42,14 +44,15 @@ struct User{
 	char name[14];
 	unsigned int weight;
 	unsigned char gender;
+	unsigned char key_weight;
 	char password[9];
 
 };
 
-struct User List_of_Users[4] = {	{"_", 0, 0, "00000000"},
-									{"_", 0, 0, "00000000"},
-									{"_", 0, 0, "00000000"},
-									{"_", 0, 0, "00000000"},	};
+struct User List_of_Users[4] = {	{"_", 0, 0, 0, "00000000"},
+									{"_", 0, 0, 0, "00000000"},
+									{"_", 0, 0, 0, "00000000"},
+									{"_", 0, 0, 0, "00000000"},	};
 //// Add a drink globals
 
 unsigned char add_drink_flag = 0;
@@ -98,7 +101,6 @@ void add_drink_variable_reset(){
 	number_output[1] = '\0';
 	number_output[2] = '\0';
 	number_output[3] = '\0';
-	
 }
 
 //// Add a drink globals
@@ -113,8 +115,9 @@ unsigned char replace_drink_flag = 0;
 //// Remove users global functions
 
 void removeusers_intro(){
-	nokia_lcd_clear();
+	
 	if(number_of_users == 1){
+		nokia_lcd_clear();
 		nokia_lcd_write_string("Select User",1);
 		nokia_lcd_set_cursor(0,10);
 		nokia_lcd_write_string("1: ",1);
@@ -123,6 +126,7 @@ void removeusers_intro(){
 	}
 	
 	else if(number_of_users == 2){
+		nokia_lcd_clear();
 		nokia_lcd_write_string("Select User",1);
 		nokia_lcd_set_cursor(0,10);
 		nokia_lcd_write_string("1: ",1);
@@ -134,6 +138,7 @@ void removeusers_intro(){
 	}
 	
 	else if(number_of_users == 3){
+		nokia_lcd_clear();
 		nokia_lcd_write_string("Select User",1);
 		nokia_lcd_set_cursor(0,10);
 		nokia_lcd_write_string("1: ",1);
@@ -148,6 +153,7 @@ void removeusers_intro(){
 	}
 	
 	else if(number_of_users == 4){
+		nokia_lcd_clear();
 		nokia_lcd_write_string("Select User",1);
 		nokia_lcd_set_cursor(0,10);
 		nokia_lcd_write_string("1: ",1);
@@ -165,7 +171,8 @@ void removeusers_intro(){
 	}
 	
 	else{
-		nokia_lcd_write_string("No Users!",1);
+		nokia_lcd_clear();
+		nokia_lcd_write_string("No users in   system. Press any key to go to Main Menu.",1);
 		nokia_lcd_render();
 	}
 }
@@ -194,7 +201,7 @@ unsigned long auto_timer = 0;
 
 unsigned char AlphaNumPad(){
 	while((pushed_key_ANP = GetKeypadKey()) == '\0'){
-		if(auto_timer == 40){
+		if(auto_timer == 20){
 			auto_timer = 0;
 			return '\0';
 		}
@@ -661,13 +668,14 @@ void MainMenuPulse(unsigned portBASE_TYPE Priority)
  
  
 ////////// Adding A User State Machine //////////
-enum AddUserState {adduser_init,username,userweight,usergender,userpassword,confirmpassword,adduser_finished} adduser_state;
+enum AddUserState {adduser_init,username,userweight,usergender,userkey,userpassword,confirmpassword,adduser_finished} adduser_state;
 
 char user_name[14] = "_";
 char weight_output[5] = "_";
 unsigned char user_name_size = 0;
 unsigned int user_weight = 0;
 unsigned char user_gender = 0;
+unsigned char user_key = 0;
 char user_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 char user_compare_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 unsigned char password_size = 0;
@@ -841,7 +849,22 @@ void AddUser_Tick(){
 			}
 		
 			break;
-		
+			
+		case userkey:
+			if(GetBit(~PINA,2)){
+				user_key = 10;
+			}
+			
+			else if(GetBit(~PINA,3)){
+				user_key = 7;
+			}
+			
+			else{
+				user_key = 0;
+			}
+			
+			break;
+			
 		case userpassword:
 			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
 			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
@@ -1067,6 +1090,24 @@ void AddUser_Tick(){
 		
 		case usergender:
 			if(user_gender != 0 && adding_user_flag){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Weighing keys",1);
+				nokia_lcd_render();
+				adduser_state = userkey;
+			}
+		
+			else if(user_gender == 0 && adding_user_flag){
+				adduser_state = usergender;
+			}
+			
+			else if(!adding_user_flag){
+				adduser_state = adduser_init;
+			}
+		
+			break;
+			
+		case userkey:
+			if(user_key != 0 && adding_user_flag){
 				password_size = 0;
 				for(unsigned char i = 0; i < 8; ++i){
 					user_password[i] = '\0';
@@ -1079,18 +1120,17 @@ void AddUser_Tick(){
 				nokia_lcd_set_cursor(0,20);
 				nokia_lcd_write_string("*",1);
 				nokia_lcd_render();
-			
 				adduser_state = userpassword;
 			}
-		
-			else if(user_gender == 0 && adding_user_flag){
-				adduser_state = usergender;
+			
+			else if(user_key == 0 && adding_user_flag){
+				adduser_state = userkey;
 			}
 			
 			else if(!adding_user_flag){
 				adduser_state = adduser_init;
 			}
-		
+			
 			break;
 		
 		case userpassword:
@@ -1196,6 +1236,7 @@ void AddUser_Tick(){
 				strncpy(List_of_Users[number_of_users].password,user_password,sizeof(List_of_Users[number_of_users].password));
 				List_of_Users[number_of_users].gender = user_gender;
 				List_of_Users[number_of_users].weight = user_weight;
+				List_of_Users[number_of_users].key_weight = user_key;
 				++number_of_users;
 				adduser_state = adduser_init;
 			}
@@ -1259,7 +1300,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 List_of_Users[source].gender = tempgender;
  }
 
- unsigned char remove_password_verification(){
+unsigned char remove_password_verification(){
 	 for(unsigned char i = 0; i < 8; ++i){
 		 if(List_of_Users[user_to_remove].password[i] != temporary_password[i]){
 			 return 0;
@@ -1269,7 +1310,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 return 1;
  }
 
- enum RemoveUsers {removeusers_init, removeuser_select, removeuser_password, removeuser_confirm} removeusers;
+ enum RemoveUsers {removeusers_init, removeuser_false,removeuser_select, removeuser_password, removeuser_confirm} removeusers;
 
  void RemoveUsers_Init(){
 	 removeusers = removeusers_init;
@@ -1279,6 +1320,11 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 //Actions
 	 switch(removeusers){
 		 case removeusers_init:
+			break;
+			
+		case removeuser_false:
+			while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
 			break;
 		 
 		 case removeuser_select:
@@ -1357,9 +1403,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 switch(removeusers){
 		 case removeusers_init:
 			 if(removeusers_flag){
-				 nokia_lcd_clear();
 				 if(number_of_users > 0 && number_of_users < 5){
-					 removeusers_intro();
 					 removeuser_selection = '\0';
 					 removeuser_prev_selection = '\0';
 					 removeuser_password_fails = 0;
@@ -1368,8 +1412,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 				 }
 			 
 				 else{
-					 removeusers_flag = 0;
-					 removeusers = removeusers_init;
+					 removeusers = removeuser_false;
 				 }
 			 }
 		 
@@ -1378,6 +1421,18 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 			 }
 		 
 			 break;
+			 
+		 case removeuser_false:
+			if(removeuser_selection != '\0'){
+				removeusers_flag = 0;
+				removeusers = removeusers_init;
+			}
+			
+			else{
+				removeusers = removeuser_false;
+			}
+			
+			break;
 		 
 		 case removeuser_select:
 			 if(removeuser_selection < number_of_users && removeusers_flag){
@@ -1550,7 +1605,8 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
  
 ////////// Adding a drink State Machine //////////
   
-enum AddDrinkState {add_drink_init,add_drink_wait,drink_exists,drink_type,drink_volume,drink_ac,drink_confirm} add_drink_state;
+enum AddDrinkState {add_drink_init, add_drink_no_user, add_drink_verify, add_drink_wait,
+					drink_exists, drink_type, drink_volume, drink_ac, drink_confirm} add_drink_state;
 
 void AddDrink_Init(){
 	add_drink_state = add_drink_init;
@@ -1561,6 +1617,15 @@ void AddDrink_Tick(){
 	switch(add_drink_state){
 		case add_drink_init:
 			break;
+		
+		case add_drink_no_user:
+			while((add_drink_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((add_drink_prev_select = GetKeypadKey()) == add_drink_selection){ _delay_ms(200); }
+			break;
+		
+		case add_drink_verify:
+			break;
+		
 		case add_drink_wait:
 			break;
 			
@@ -1738,7 +1803,18 @@ void AddDrink_Tick(){
 					nokia_lcd_render();
 					add_drink_state = drink_exists;
 				}
-			
+				
+				else if(number_of_users == 0){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("No users in   system. Press any key to go to Main Menu.",1);
+					nokia_lcd_render();
+					add_drink_state = add_drink_no_user;
+				}
+				else{
+					user_verify_flag = 1;
+					add_drink_state = add_drink_verify;
+				}
+				/*
 				else{
 					nokia_lcd_clear();
 					nokia_lcd_write_string("Close door to continue",1);
@@ -1746,13 +1822,48 @@ void AddDrink_Tick(){
 					PORTB = SetBit(PORTB,1,1);
 					add_drink_state = add_drink_wait;
 				}
+				*/
 			}
+			break;
+			
+		case add_drink_no_user:
+			if(add_drink_selection != '\0'){
+				add_drink_flag = 0;
+				add_drink_variable_reset();
+				add_drink_state = add_drink_init;
+			}
+			
+			else{
+				add_drink_state = add_drink_no_user;
+			}
+			break;
+			
+		case add_drink_verify:
+			if(user_verify_flag){
+				add_drink_state = add_drink_verify;
+			}
+			
+			else if(!user_verify_flag && correct_user_credentials){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Close door to continue",1);
+				nokia_lcd_render();
+				PORTB = SetBit(PORTB,1,1);
+				correct_user_credentials = 0;
+				add_drink_state = add_drink_wait;
+			}
+			
+			else{
+				add_drink_flag = 0;
+				add_drink_variable_reset();
+				add_drink_state = add_drink_init;
+			}
+			
 			break;
 			
 		case add_drink_wait:
 			liquor_door_sensor = GetBit(~PINA, 1);
 			
-			if(liquor_door_sensor){
+			if(liquor_door_sensor && add_drink_flag){
 				PORTB = SetBit(PORTB,1,0);
 				add_drink_display();
 				add_drink_variable_reset();
@@ -2085,7 +2196,217 @@ void ReplaceDrinkPulse(unsigned portBASE_TYPE Priority)
 
 ////////// Replace a drink State Machine //////////
  
+////////// User Verification Helper State Machine //////////
  
+unsigned char uv_selection = '\0';
+unsigned char uv_prev_select = '\0';
+unsigned char uv_password_fails = 0;
+
+enum UserVerifyState {uv_init,uv_display,uv_password,} user_verify_state;
+
+void UserVerify_Init(){
+	user_verify_state = uv_init;
+}
+
+void UserVerify_Tick(){
+	//Actions
+	switch(user_verify_state){
+		case uv_init:
+		break;
+		
+		case uv_display:
+		while((uv_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+		while((uv_prev_select = GetKeypadKey()) == uv_selection){ _delay_ms(200); }
+		
+		uv_selection = uv_selection - '1';
+		break;
+		
+		case uv_password:
+		while((uv_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+		while((uv_prev_select = GetKeypadKey()) == uv_selection){ _delay_ms(200); }
+		
+		while(uv_selection != '#'){
+			if(uv_selection != '\0' && uv_selection != '*'){
+				if(password_size < 8){
+					temporary_password[password_size] = uv_selection;
+					if(password_size + 1 < 8){
+						temporary_password[password_size + 1] = '*';
+					}
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Enter",1);
+					nokia_lcd_set_cursor(0,10);
+					nokia_lcd_write_string("Password: ",1);
+					nokia_lcd_write_char(uv_password_fails + '0',1);
+					nokia_lcd_set_cursor(0,20);
+					nokia_lcd_write_string(temporary_password,1);
+					nokia_lcd_render();
+					
+					++password_size;
+				}
+			}
+			
+			if(uv_selection == '*'){
+				password_size = 0;
+				for(unsigned char i = 0; i < 8; ++i){
+					temporary_password[i] = '\0';
+				}
+				temporary_password[0] = '*';
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Enter",1);
+				nokia_lcd_set_cursor(0,10);
+				nokia_lcd_write_string("Password: ",1);
+				nokia_lcd_write_char(uv_password_fails + '0',1);
+				nokia_lcd_set_cursor(0,20);
+				nokia_lcd_write_string(temporary_password,1);
+				nokia_lcd_render();
+			}
+			
+			while((uv_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((uv_prev_select = GetKeypadKey()) == uv_selection){ _delay_ms(200); }
+		}
+		
+		
+		if(!remove_password_verification()){
+			++uv_password_fails;
+		}
+		
+		else{
+			uv_password_fails = 0;
+		}
+		break;
+		
+		default:
+		break;
+	}
+	//Transitions
+	switch(user_verify_state){
+		case uv_init:
+		if(user_verify_flag){
+			removeusers_intro();
+			user_to_remove = 5;
+			correct_user_credentials = 0;
+			user_verify_state = uv_display;
+		}
+		
+		else{
+			user_verify_state = uv_init;
+		}
+		break;
+		
+		case uv_display:
+		if(uv_selection < number_of_users && user_verify_flag){
+			user_to_remove = uv_selection;
+			uv_password_fails = 0;
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Enter",1);
+			nokia_lcd_set_cursor(0,10);
+			nokia_lcd_write_string("Password: ",1);
+			nokia_lcd_write_char(uv_password_fails + '0',1);
+			nokia_lcd_set_cursor(0,20);
+			nokia_lcd_write_string("*",1);
+			nokia_lcd_render();
+			for(unsigned char i = 0; i < 8; ++i){
+				temporary_password[i] = '\0';
+			}
+			temporary_password[0] = '*';
+			user_verify_state = uv_password;
+		}
+		
+		else if(!user_verify_flag){
+			uv_password_fails = 0;
+			password_size = 0;
+			for(unsigned char i = 0; i < 8; ++i){
+				temporary_password[i] = '\0';
+			}
+			temporary_password[0] = '\0';
+			user_verify_state = uv_init;
+		}
+		
+		else{
+			user_verify_state = uv_display;
+		}
+		
+		break;
+		
+		case uv_password:
+		if(uv_password_fails == 0 && user_verify_flag){
+			nokia_lcd_clear();
+			nokia_lcd_write_string("User verified",1);
+			nokia_lcd_set_cursor(0,10);
+			nokia_lcd_write_string("successfully",1);
+			nokia_lcd_render();
+			correct_user_credentials = 1;
+			user_verify_flag = 0;
+			user_verify_state = uv_init;
+		}
+		
+		else if(uv_password_fails == 3 && user_verify_flag){
+			uv_password_fails = 0;
+			password_size = 0;
+			for(unsigned char i = 0; i < 8; ++i){
+				temporary_password[i] = '\0';
+			}
+			temporary_password[0] = '\0';
+			nokia_lcd_clear();
+			nokia_lcd_write_string("User verified",1);
+			nokia_lcd_set_cursor(0,10);
+			nokia_lcd_write_string("unsuccessfully",1);
+			nokia_lcd_render();
+			correct_user_credentials = 0;
+			user_verify_flag = 0;
+			user_verify_state = uv_init;
+		}
+		
+		else if(uv_password_fails != 0 && uv_password_fails != 3 && user_verify_flag){
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Enter",1);
+			nokia_lcd_set_cursor(0,10);
+			nokia_lcd_write_string("Password: ",1);
+			nokia_lcd_write_char(uv_password_fails + '0',1);
+			nokia_lcd_set_cursor(0,20);
+			nokia_lcd_write_string("*",1);
+			nokia_lcd_render();
+			password_size = 0;
+			for(unsigned char i = 0; i < 8; ++i){
+				temporary_password[i] = '\0';
+			}
+			temporary_password[0] = '*';
+			user_verify_state = uv_password;
+		}
+		
+		else if(!user_verify_flag){
+			uv_password_fails = 0;
+			password_size = 0;
+			for(unsigned char i = 0; i < 8; ++i){
+				temporary_password[i] = '\0';
+			}
+			temporary_password[0] = '\0';
+			user_verify_state = uv_init;
+		}
+		break;
+		
+		default:
+		break;
+	}
+}
+
+void UserVerifyTask()
+{
+	UserVerify_Init();
+	for(;;)
+	{
+		UserVerify_Tick();
+		vTaskDelay(100);
+	}
+}
+
+void UserVerifyPulse(unsigned portBASE_TYPE Priority)
+{
+	xTaskCreate(UserVerifyTask, (signed portCHAR *)"UserVerifyTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+} 
+ 
+////////// User Verification Helper State Machine //////////
+
 int main(void) 
 {
 	/*
@@ -2111,6 +2432,7 @@ int main(void)
 	RemoveUsersPulse(1);
 	AddDrinkPulse(1);
 	ReplaceDrinkPulse(1);
+	UserVerifyPulse(1);
     //RunSchedular 
     vTaskStartScheduler(); 
 	return 0; 
