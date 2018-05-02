@@ -31,6 +31,13 @@ unsigned char adding_user_flag = 0;
 unsigned char removeusers_flag = 0;
 unsigned char number_of_users = 0;
 
+//// Global lock signal variables and lock sensor variables
+unsigned char liquor_door_signal = 0;	// 0 = lock, 1 = unlock	PB1
+unsigned char liquor_door_sensor = 0;	// 0 = door open, 1 = door closed PA1
+unsigned char key_door_signal = 0;		// 0 = lock, 1 = unlock PB0
+unsigned char key_door_sensor = 0;		// 0 = door open, 1 = door closed PA0
+//// Global lock signal variables and lock sensor variables
+
 struct User{
 	char name[14];
 	unsigned int weight;
@@ -48,7 +55,7 @@ struct User List_of_Users[4] = {	{"_", 0, 0, "00000000"},
 unsigned char add_drink_flag = 0;
 unsigned char add_drink_selection = '\0';
 unsigned char add_drink_prev_select = '\0';
-unsigned char type_of_drink = 0; //0=nodrink,1=beer, 2=wine,3=liquor,4=other
+unsigned char type_of_drink = 0; //0=no drink,1=beer, 2=wine,3=liquor,4=other
 uint16_t volume_of_drink = 0;
 unsigned char drink_alcohol_content = 0;
 char *drink_names[6] = {"*", "Beer", "Wine", "Liquor", "Other"};
@@ -95,6 +102,13 @@ void add_drink_variable_reset(){
 }
 
 //// Add a drink globals
+
+//// Replace a drink globals
+unsigned char keys_in_safe_flag = 0;	// 0 = false, 1 = true;
+
+unsigned char replace_drink_flag = 0;
+
+//// Replace a drink globals
 
 //// Remove users global functions
 
@@ -469,19 +483,14 @@ void MainMenu_Tick(){
 			
 		case drink_options:
 			if(drink_menu_selection == '1'){
-				add_drink_display();
 				add_drink_flag = 1;
 				mainmenu_state = add_drink;
 				
 			}
 			
 			else if(drink_menu_selection == '2'){
+				replace_drink_flag = 1;
 				mainmenu_state = replace_drink;
-				nokia_lcd_clear();
-				nokia_lcd_write_string("*Replce Drnk*",1);
-				nokia_lcd_set_cursor(2,10);
-				nokia_lcd_write_string("# to return",1);
-				nokia_lcd_render();
 			}
 			
 			else if(drink_menu_selection == '3'){
@@ -518,7 +527,11 @@ void MainMenu_Tick(){
 			break;
 			
 		case replace_drink:
-			if(temp_menu_selection == '#'){
+			if(replace_drink_flag){
+				mainmenu_state = replace_drink;
+			}
+			
+			else{
 				mainmenu_state = MainMenu;
 				main_menu_selection = '\0';
 				temp_menu_selection = '\0';
@@ -526,10 +539,6 @@ void MainMenu_Tick(){
 				drink_menu_selection = '\0';
 				user_menu_selection = '\0';
 				main_menu_display();
-			}
-			
-			else{
-				mainmenu_state = replace_drink;
 			}
 			
 			break;
@@ -652,7 +661,7 @@ void MainMenuPulse(unsigned portBASE_TYPE Priority)
  
  
 ////////// Adding A User State Machine //////////
-enum AddUserState {adduser_init, username,userweight, usergender, userpassword, confirmpassword, adduser_finished} adduser_state;
+enum AddUserState {adduser_init,username,userweight,usergender,userpassword,confirmpassword,adduser_finished} adduser_state;
 
 char user_name[14] = "_";
 char weight_output[5] = "_";
@@ -1541,7 +1550,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
  
 ////////// Adding a drink State Machine //////////
   
-enum AddDrinkState {add_drink_init,drink_exists,drink_type,drink_volume,drink_ac,drink_confirm} add_drink_state;
+enum AddDrinkState {add_drink_init,add_drink_wait,drink_exists,drink_type,drink_volume,drink_ac,drink_confirm} add_drink_state;
 
 void AddDrink_Init(){
 	add_drink_state = add_drink_init;
@@ -1552,7 +1561,9 @@ void AddDrink_Tick(){
 	switch(add_drink_state){
 		case add_drink_init:
 			break;
-		
+		case add_drink_wait:
+			break;
+			
 		case drink_exists:
 			while((add_drink_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
 			while((add_drink_prev_select = GetKeypadKey()) == add_drink_selection){ _delay_ms(200); }
@@ -1723,18 +1734,33 @@ void AddDrink_Tick(){
 			if(add_drink_flag){
 				if(type_of_drink != 0){
 					nokia_lcd_clear();
-					nokia_lcd_write_string("Can't add",1);
-					nokia_lcd_set_cursor(0,10);
-					nokia_lcd_write_string("anymore drinks",1);
+					nokia_lcd_write_string("Can't add     anymore drinksPress # to    continue",1);
 					nokia_lcd_render();
 					add_drink_state = drink_exists;
 				}
 			
 				else{
-					add_drink_display();
-					add_drink_variable_reset();
-					add_drink_state = drink_type;
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Close door to continue",1);
+					nokia_lcd_render();
+					PORTB = SetBit(PORTB,1,1);
+					add_drink_state = add_drink_wait;
 				}
+			}
+			break;
+			
+		case add_drink_wait:
+			liquor_door_sensor = GetBit(~PINA, 1);
+			
+			if(liquor_door_sensor){
+				PORTB = SetBit(PORTB,1,0);
+				add_drink_display();
+				add_drink_variable_reset();
+				add_drink_state = drink_type;
+			}
+			
+			else{
+				add_drink_state = add_drink_wait;
 			}
 			break;
 		
@@ -1937,6 +1963,127 @@ void AddDrinkPulse(unsigned portBASE_TYPE Priority)
 } 
   
 ////////// Adding a drink State Machine //////////
+
+////////// Replace a drink State Machine //////////
+
+void replace_drink_error(){
+	nokia_lcd_clear();
+	nokia_lcd_write_string("Remove keys   from safe.    Press any key to continue.",1);
+	nokia_lcd_render();
+}
+
+void replace_drink_success(){
+	nokia_lcd_clear();
+	nokia_lcd_write_string("Replace drink.",1);
+	nokia_lcd_set_cursor(0,10);
+	nokia_lcd_write_string("Then close thedoor to       continue.",1);
+	nokia_lcd_render();
+}
+
+enum ReplaceDrinkState {replace_init,replace_fail,replace_no_drink,replace_add_drink} replace_drink_state;
+
+void ReplaceDrink_Init(){
+	replace_drink_state = replace_init;
+}
+
+void ReplaceDrink_Tick(){
+	unsigned char replace_drink_selection = '\0';
+	unsigned char replace_drink_prev_select = '\0';
+	//Actions
+	switch(replace_drink_state){
+		case replace_init:
+			break;
+		
+		case replace_fail:
+			while((replace_drink_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((replace_drink_prev_select = GetKeypadKey()) == replace_drink_selection){ _delay_ms(200); }
+			break;
+			
+		case replace_no_drink:
+			while((replace_drink_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((replace_drink_prev_select = GetKeypadKey()) == replace_drink_selection){ _delay_ms(200); }
+			break;
+		
+		case replace_add_drink:
+			break;
+		
+		default:
+			break;
+	}
+	//Transitions
+	switch(replace_drink_state){
+		case replace_init:
+			if(replace_drink_flag){
+				if(keys_in_safe_flag){
+					replace_drink_error();
+					replace_drink_state = replace_fail;
+				}
+				
+				else if(type_of_drink == 0){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("No drink      detected.     Press any key to continue.",1);
+					nokia_lcd_render();
+					replace_drink_state = replace_no_drink;
+				}
+			
+				else{
+					add_drink_flag = 1;
+					type_of_drink = 0; //0=nodrink,1=beer, 2=wine,3=liquor,4=other
+					volume_of_drink = 0;
+					drink_alcohol_content = 0;
+					add_drink_variable_reset();
+					replace_drink_state = replace_add_drink;
+				}
+			}
+			break;
+		
+		case replace_fail:
+			if(replace_drink_selection != '\0'){
+				replace_drink_flag = 0;
+				replace_drink_state = replace_init;
+			}
+			break;
+			
+		case replace_no_drink:
+			if(replace_drink_selection != '\0'){
+				replace_drink_flag = 0;
+				replace_drink_state = replace_init;
+			}
+			break;
+		
+		case replace_add_drink:
+			if(add_drink_flag){
+				replace_drink_state = replace_add_drink;
+			}
+		
+			else{
+				replace_drink_flag = 0;
+				replace_drink_state = replace_init;
+			}
+			break;
+		
+		default:
+			replace_drink_state = replace_init;
+			break;
+	}
+}
+
+void ReplaceDrinkTask()
+{
+	ReplaceDrink_Init();
+	for(;;)
+	{
+		ReplaceDrink_Tick();
+	}	vTaskDelay(100);
+	
+}
+
+void ReplaceDrinkPulse(unsigned portBASE_TYPE Priority)
+{
+	xTaskCreate(ReplaceDrinkTask, (signed portCHAR *)"ReplaceDrinkTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+}
+
+////////// Replace a drink State Machine //////////
  
  
 int main(void) 
@@ -1950,13 +2097,20 @@ int main(void)
 	PORTC = 0xF0;	//Init port C to 1s							[1111 0000]
 	DDRD = 0xFF;	//Set Port D to output
 	PORTD = 0x00;	//Init Port D to 0s
+	DDRB = 0xFF;	//Controls the locks
+	PORTB = 0x00;
+	DDRA = 0x00;	//Controls the sensors to make sure door is locked
+	PORTA = 0xFF;
 	nokia_lcd_init();
-
+	
+	PORTB = 0x00;	// Lock all doors
+	
     //Start Tasks  
     MainMenuPulse(1);
 	AddUserPulse(1);
 	RemoveUsersPulse(1);
 	AddDrinkPulse(1);
+	ReplaceDrinkPulse(1);
     //RunSchedular 
     vTaskStartScheduler(); 
 	return 0; 
