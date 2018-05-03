@@ -30,6 +30,7 @@ unsigned char user_menu_selection = '\0';
 unsigned char adding_user_flag = 0;
 unsigned char removeusers_flag = 0;
 unsigned char user_verify_flag = 0;
+unsigned char get_drink_flag = 0;
 unsigned char correct_user_credentials = 0;
 unsigned char number_of_users = 0;
 
@@ -39,6 +40,11 @@ unsigned char liquor_door_sensor = 0;	// 0 = door open, 1 = door closed PA1
 unsigned char key_door_signal = 0;		// 0 = lock, 1 = unlock PB0
 unsigned char key_door_sensor = 0;		// 0 = door open, 1 = door closed PA0
 //// Global lock signal variables and lock sensor variables
+
+//// Drink and Key global variables
+unsigned char drink_has_been_removed = 0;
+unsigned char keys_have_been_deposited = 0;
+//// Drink and Key global variables
 
 struct User{
 	char name[14];
@@ -107,9 +113,7 @@ void add_drink_variable_reset(){
 
 //// Replace a drink globals
 unsigned char keys_in_safe_flag = 0;	// 0 = false, 1 = true;
-
 unsigned char replace_drink_flag = 0;
-
 //// Replace a drink globals
 
 //// Remove users global functions
@@ -390,12 +394,8 @@ void MainMenu_Tick(){
 	switch(mainmenu_state){
 		case MainMenu:
 			if(main_menu_selection == '1'){
+				get_drink_flag = 1;
 				mainmenu_state = get_drink;
-				nokia_lcd_clear();
-				nokia_lcd_write_string("*Drink stuff*",1);
-				nokia_lcd_set_cursor(2,10);
-				nokia_lcd_write_string("# to return",1);
-				nokia_lcd_render();
 			}
 			
 			else if(main_menu_selection == '2'){
@@ -419,18 +419,18 @@ void MainMenu_Tick(){
 			break;
 		
 		case get_drink:
-			if(temp_menu_selection == '#'){
-				mainmenu_state = MainMenu;
+			if(get_drink_flag){
+				mainmenu_state = get_drink;
+			}
+			
+			else{
 				main_menu_selection = '\0';
 				temp_menu_selection = '\0';
 				settings_menu_selection = '\0';
 				drink_menu_selection = '\0';
 				user_menu_selection = '\0';
 				main_menu_display();
-			}
-			
-			else{
-				mainmenu_state = get_drink;
+				mainmenu_state = MainMenu;
 			}
 			
 			break;
@@ -668,7 +668,8 @@ void MainMenuPulse(unsigned portBASE_TYPE Priority)
  
  
 ////////// Adding A User State Machine //////////
-enum AddUserState {adduser_init,username,userweight,usergender,userkey,userpassword,confirmpassword,adduser_finished} adduser_state;
+enum AddUserState {adduser_init,adduser_deny,username,userweight,usergender,
+					userkey,userpassword,confirmpassword,adduser_finished} adduser_state;
 
 char user_name[14] = "_";
 char weight_output[5] = "_";
@@ -703,6 +704,11 @@ void AddUser_Tick(){
 	//Actions
 	switch(adduser_state){
 		case adduser_init:
+			break;
+			
+		case adduser_deny:
+			while((keypad_character = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((previous_character = GetKeypadKey()) == keypad_character){ _delay_ms(200); }
 			break;
 			
 		case username:
@@ -989,44 +995,54 @@ void AddUser_Tick(){
 	//Transitions
 	switch(adduser_state){
 		case adduser_init:
-			if(adding_user_flag ){
-				if(number_of_users == 4){
-					adding_user_flag = 0;
-					adduser_state = adduser_init;
-				}
+			if(adding_user_flag){
+				if(!keys_have_been_deposited){
+					if(number_of_users == 4){
+						adding_user_flag = 0;
+						adduser_state = adduser_init;
+					}
 				
-				else{
-					for(unsigned char i = 0; i < 14; ++i){
-						user_name[i] = '\0';
-						if(i < 5){
-							weight_output[i] = '\0';
+					else{
+						for(unsigned char i = 0; i < 14; ++i){
+							user_name[i] = '\0';
+							if(i < 5){
+								weight_output[i] = '\0';
+							}
 						}
-					}
-					user_name[0] = '_';
-					weight_output[0] = '_';
-					user_name_size = 0;
-					user_weight = 0;
-					user_gender = 0;
+						user_name[0] = '_';
+						weight_output[0] = '_';
+						user_name_size = 0;
+						user_weight = 0;
+						user_gender = 0;
 				
-					for(unsigned char i = 0; i < 8; ++i){
-						user_password[i] = '\0';
-						user_compare_password[i] = '\0';
-					}
-					user_password[0] = '*';
-					user_compare_password[0] = '\0';
-					password_size = 0;
-					keypad_character = '\0';
-					previous_character = '\0';
-					password_attempt_fails = 0;
-					adding_user_finished = 0;
+						for(unsigned char i = 0; i < 8; ++i){
+							user_password[i] = '\0';
+							user_compare_password[i] = '\0';
+						}
+						user_password[0] = '*';
+						user_compare_password[0] = '\0';
+						password_size = 0;
+						keypad_character = '\0';
+						previous_character = '\0';
+						password_attempt_fails = 0;
+						adding_user_finished = 0;
 				
-					nokia_lcd_clear();
-					nokia_lcd_write_string("Enter Name",1);
-					nokia_lcd_set_cursor(0,10);
-					nokia_lcd_write_string(user_name,1);
-					nokia_lcd_render();
-					adduser_state = username;
+						nokia_lcd_clear();
+						nokia_lcd_write_string("Enter Name",1);
+						nokia_lcd_set_cursor(0,10);
+						nokia_lcd_write_string(user_name,1);
+						nokia_lcd_render();
+						adduser_state = username;
+					}
 				}
+					
+				else{
+					nokia_lcd_clear();
+					nokia_lcd_write_string("System is in  use. Try again later",1);
+					nokia_lcd_render();
+					
+					adduser_state = adduser_deny;
+				}	
 				
 			}
 			
@@ -1035,6 +1051,17 @@ void AddUser_Tick(){
 			}
 			break;
 		
+		case adduser_deny:
+			if(keypad_character != '\0'){
+				adding_user_flag = 0;
+				adduser_state = adduser_init;
+			}
+			
+			else{
+				adduser_state = adduser_deny;
+			}
+			break;
+			
 		case username:
 			if(keypad_character == '#' && user_name_size > 0 && adding_user_flag){
 				user_name[user_name_size] = '\0';
@@ -1090,6 +1117,8 @@ void AddUser_Tick(){
 		
 		case usergender:
 			if(user_gender != 0 && adding_user_flag){
+				key_door_signal = 1;
+				PORTB = SetBit(PORTB,0,key_door_signal);
 				nokia_lcd_clear();
 				nokia_lcd_write_string("Weighing keys",1);
 				nokia_lcd_render();
@@ -1310,7 +1339,7 @@ unsigned char remove_password_verification(){
 	 return 1;
  }
 
- enum RemoveUsers {removeusers_init, removeuser_false,removeuser_select, removeuser_password, removeuser_confirm} removeusers;
+ enum RemoveUsers {removeusers_init, removeuser_deny, removeuser_false,removeuser_select, removeuser_password, removeuser_confirm} removeusers;
 
  void RemoveUsers_Init(){
 	 removeusers = removeusers_init;
@@ -1320,6 +1349,11 @@ unsigned char remove_password_verification(){
 	 //Actions
 	 switch(removeusers){
 		 case removeusers_init:
+			break;
+			
+		case removeuser_deny:
+			while((removeuser_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((removeuser_prev_selection = GetKeypadKey()) == removeuser_selection){ _delay_ms(200); }
 			break;
 			
 		case removeuser_false:
@@ -1410,6 +1444,13 @@ unsigned char remove_password_verification(){
 					 user_to_remove = 5;
 					 removeusers = removeuser_select;
 				 }
+				 
+				 else if(keys_have_been_deposited || drink_has_been_removed){
+					 nokia_lcd_clear();
+					 nokia_lcd_write_string("System is in  use. Try again later",1);
+					 nokia_lcd_render();
+					 removeusers = removeuser_deny;
+				 }
 			 
 				 else{
 					 removeusers = removeuser_false;
@@ -1421,7 +1462,19 @@ unsigned char remove_password_verification(){
 			 }
 		 
 			 break;
-			 
+			
+		 case removeuser_deny:
+			if(removeuser_selection != '\0'){
+				removeusers_flag = 0;
+				removeusers = removeusers_init;
+			}
+			
+			else{
+				removeusers = removeuser_deny;
+			}
+			
+			break;
+						
 		 case removeuser_false:
 			if(removeuser_selection != '\0'){
 				removeusers_flag = 0;
@@ -1845,7 +1898,7 @@ void AddDrink_Tick(){
 			
 			else if(!user_verify_flag && correct_user_credentials){
 				nokia_lcd_clear();
-				nokia_lcd_write_string("Close door to continue",1);
+				nokia_lcd_write_string("Close liquor  door to        continue",1);
 				nokia_lcd_render();
 				PORTB = SetBit(PORTB,1,1);
 				correct_user_credentials = 0;
@@ -2406,6 +2459,243 @@ void UserVerifyPulse(unsigned portBASE_TYPE Priority)
 } 
  
 ////////// User Verification Helper State Machine //////////
+unsigned char gd_selection = '\0';
+unsigned char gd_prev_select = '\0';
+unsigned char correct_key = 2;	//0 = false, 1 = true, 2 = no_selection
+
+enum GetDrinkState {gd_init,gd_drink_removed,gd_no_drink,gd_no_user,gd_user_select,gd_deposit_keys,gd_close_door} get_drink_state;
+
+void GetDrink_Init(){
+	get_drink_state = gd_init;
+}
+
+void GetDrink_Tick(){
+	//Actions
+	switch(get_drink_state){
+		case gd_init:
+			break;
+		
+		case gd_drink_removed:
+			while((gd_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((gd_prev_select = GetKeypadKey()) == gd_selection){ _delay_ms(200); }
+			break;
+		
+		case gd_no_drink:
+			while((gd_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((gd_prev_select = GetKeypadKey()) == gd_selection){ _delay_ms(200); }
+			break;
+			
+		case gd_no_user:
+			while((gd_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
+			while((gd_prev_select = GetKeypadKey()) == gd_selection){ _delay_ms(200); }
+			break;
+		
+		case gd_user_select:
+			break;
+		
+		case gd_deposit_keys:
+			if(GetBit(~PINA,3)){
+				if(List_of_Users[user_to_remove].key_weight == 7){
+					correct_key = 1;
+				}
+			
+				else{
+					correct_key = 0;
+				}
+			}
+		
+			else if(GetBit(~PINA,2)){
+				if(List_of_Users[user_to_remove].key_weight == 10){
+					correct_key = 1;
+				}
+			
+				else{
+					correct_key = 0;
+				}
+			}
+		
+			key_door_sensor = GetBit(~PINA,0);
+			break;
+		
+		case gd_close_door:
+			key_door_sensor = GetBit(~PINA,0);
+			break;
+		
+		default:
+			break;
+	}
+	
+	//Transitions
+	switch(get_drink_state){
+		case gd_init:
+			if(get_drink_flag){
+				if(number_of_users == 0){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("No users in   system. Press any key to go to Main Menu.",1);
+					nokia_lcd_render();
+					user_verify_flag = 0;
+					get_drink_state = gd_no_user;
+				}
+			
+				else if(type_of_drink == 0){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("No drinks     found. Press  any key to go to Main Menu.",1);
+					nokia_lcd_render();
+					user_verify_flag = 0;
+					get_drink_state = gd_no_drink;
+				}
+			
+				else if(drink_has_been_removed){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Drink has beenremoved. Pressany key to go to Main Menu",1);
+					nokia_lcd_render();
+					user_verify_flag = 0;
+					get_drink_state = gd_no_drink;
+				}
+			
+				else{
+					correct_user_credentials = 0;
+					user_verify_flag = 1;
+					get_drink_state = gd_user_select;
+				}
+			
+			}
+		
+			else{
+				get_drink_state = gd_init;
+			}
+		
+			break;
+		
+		case gd_drink_removed:
+			if(gd_selection != '\0'){
+				get_drink_flag = 0;
+				get_drink_state = gd_init;
+			}
+		
+			else{
+				get_drink_state = gd_drink_removed;
+			}
+			break;
+		
+		case gd_no_user:
+			if(gd_selection != '\0'){
+				get_drink_flag = 0;
+				get_drink_state = gd_init;
+			}
+		
+			else{
+				get_drink_state = gd_no_user;
+			}
+			break;
+		
+		case gd_no_drink:
+			if(gd_selection != '\0'){
+				get_drink_flag = 0;
+				get_drink_state = gd_init;
+			}
+		
+			else{
+				get_drink_state = gd_no_drink;
+			}
+		
+			break;
+		
+		case gd_user_select:
+			if(user_verify_flag){
+				get_drink_state = gd_user_select;
+			}
+		
+			else if(!user_verify_flag && correct_user_credentials){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Deposit Keys",1);
+				nokia_lcd_render();
+				correct_key = 2;
+				key_door_signal = 1;
+				PORTB = SetBit(PORTB,0,key_door_signal);
+				get_drink_state = gd_deposit_keys;
+			}
+		
+			else{
+				get_drink_flag = 0;
+				correct_user_credentials = 0;
+				get_drink_state = gd_init;
+			}
+		
+			break;
+		
+		case gd_deposit_keys:
+			if(correct_key == 2){
+				get_drink_state = gd_deposit_keys;
+			}
+		
+			else if(correct_key == 0){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Incorrect Keys",1);
+				nokia_lcd_render();
+				correct_user_credentials = 0;
+				get_drink_flag = 0;
+				get_drink_state = gd_init;
+			}
+		
+			else if(correct_key == 1){
+				if(!key_door_sensor){
+					nokia_lcd_clear();
+					nokia_lcd_write_string("Close Key Door",1);
+					nokia_lcd_render();
+				}
+			
+				get_drink_state = gd_close_door;
+			}
+		
+			else{
+				get_drink_state = gd_deposit_keys;
+			}
+		
+			break;
+		
+		case gd_close_door:
+			if(key_door_sensor){
+				keys_have_been_deposited = 1;
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Enjoy! Press  any key to   continue",1);
+				nokia_lcd_render();
+				drink_has_been_removed = 1;
+				key_door_signal = 0;
+				PORTB = SetBit(PORTB,0,key_door_signal);
+				liquor_door_signal = 1;
+				PORTB = SetBit(PORTB,1,liquor_door_signal);
+				get_drink_flag = 0;
+				get_drink_state = gd_init;
+			}
+		
+			else{
+				get_drink_state = gd_close_door;
+			}
+		
+		break;
+		
+		default:
+			get_drink_state = gd_init;
+			break;
+	}
+}
+
+void GetDrinkTask(){
+	
+	GetDrink_Init();
+	for(;;)
+	{
+		GetDrink_Tick();
+		vTaskDelay(100);
+	}
+}
+
+void GetDrinkPulse(unsigned portBASE_TYPE Priority)
+{
+	xTaskCreate(GetDrinkTask, (signed portCHAR *)"GetDrinkTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+}
+
 
 int main(void) 
 {
@@ -2433,6 +2723,7 @@ int main(void)
 	AddDrinkPulse(1);
 	ReplaceDrinkPulse(1);
 	UserVerifyPulse(1);
+	GetDrinkPulse(1);
     //RunSchedular 
     vTaskStartScheduler(); 
 	return 0; 
