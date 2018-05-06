@@ -20,6 +20,8 @@
 #include "task.h" 
 #include "croutine.h"
 
+
+// System flags to be used to control different state machines
 unsigned char system_init;
 unsigned char main_menu_init;
 unsigned char main_menu_selection = '\0';
@@ -35,8 +37,9 @@ unsigned char get_key_flag = 0;
 unsigned char correct_user_credentials = 0;
 unsigned char number_of_users = 0;
 
+// Flags to be used by the timer state machine *To be implemented in v2*
 unsigned char current_user = 5;			// user that is using the system;
-unsigned char timer_is_on = 0;				// timer that will be turned on if not sober
+unsigned char timer_is_on = 0;			// timer that will be turned on if not sober
 uint16_t current_timer = 0;				// keeps track of elapsed time
 
 const double male_constant = 0.68;
@@ -47,13 +50,12 @@ unsigned char liquor_door_signal = 0;	// 0 = lock, 1 = unlock	PB1
 unsigned char liquor_door_sensor = 0;	// 0 = door open, 1 = door closed PA1
 unsigned char key_door_signal = 0;		// 0 = lock, 1 = unlock PB0
 unsigned char key_door_sensor = 0;		// 0 = door open, 1 = door closed PA0
-//// Global lock signal variables and lock sensor variables
 
 //// Drink and Key global variables
 unsigned char drink_has_been_removed = 0;
 unsigned char keys_have_been_deposited = 0;
-//// Drink and Key global variables
 
+// Struct holding user information
 struct User{
 	char name[14];
 	unsigned int weight;
@@ -63,12 +65,12 @@ struct User{
 
 };
 
+// array of users that will be stored in eeprom *to be implemented in v2*
 struct User List_of_Users[4] = {	{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},	};
 //// Add a drink globals
-
 unsigned char add_drink_flag = 0;
 unsigned char add_drink_selection = '\0';
 unsigned char add_drink_prev_select = '\0';
@@ -213,7 +215,7 @@ unsigned long auto_timer = 0;
 
 unsigned char AlphaNumPad(){
 	while((pushed_key_ANP = GetKeypadKey()) == '\0'){
-		if(auto_timer == 20){
+		if(auto_timer == 20){	// automatically move the cursor in the array of chars
 			auto_timer = 0;
 			return '\0';
 		}
@@ -222,7 +224,7 @@ unsigned char AlphaNumPad(){
 		++auto_timer;
 	}
 	
-	while((tmp_pressed_key = GetKeypadKey()) == pushed_key_ANP){}
+	while((tmp_pressed_key = GetKeypadKey()) == pushed_key_ANP){}	// make sure the button has been released before continuing
 	
 	auto_timer = 0;
 	
@@ -276,7 +278,7 @@ void MainMenu_Tick(){
 		unsigned char pushed_key = GetKeypadKey();
 
 		case MainMenu:
-			main_menu_selection = GetKeypadKey();
+			main_menu_selection = GetKeypadKey();		// machine will only move along once the keypad button has been released
 			pushed_key = GetKeypadKey();
 			
 			while(main_menu_selection == pushed_key){
@@ -690,7 +692,7 @@ unsigned char previous_character = '\0';
 unsigned char password_attempt_fails = 0;
 unsigned char adding_user_finished = 0;
 
-unsigned char password_verification(){
+unsigned char password_verification(){		// compare the users original password with the entered password
 	for(unsigned char i = 0; i < 8; ++i){
 		if(user_password[i] != user_compare_password[i]){
 			return 0;
@@ -719,8 +721,8 @@ void AddUser_Tick(){
 		case username:
 			keypad_character = AlphaNumPad();
 			previous_character = '\0';
-			while(keypad_character != '#'){
-				if(keypad_character == '*'){
+			while(keypad_character != '#'){			//'#' means enter so as long as its not pressed carry on
+				if(keypad_character == '*'){		//'*' means backspace
 					if(user_name_size > 0){
 						--user_name_size;
 						user_name[user_name_size] = '_';
@@ -734,7 +736,7 @@ void AddUser_Tick(){
 					}
 				}
 			
-				else if(keypad_character != '\0'){
+				else if(keypad_character != '\0'){		//its time to update the cursor by one
 					user_name[user_name_size] = keypad_character;
 					user_name[user_name_size + 1] = '\0';
 					previous_character = keypad_character;
@@ -742,7 +744,7 @@ void AddUser_Tick(){
 				}
 			
 				else{
-					if(previous_character !='\0'){
+					if(previous_character !='\0'){	// makes sure the cursor hasnt moved automatically 
 						if(user_name_size < 9){
 							++user_name_size;
 							user_name[user_name_size] = '_';
@@ -862,7 +864,7 @@ void AddUser_Tick(){
 			break;
 			
 		case userkey:
-			if(GetBit(~PINA,2)){
+			if(GetBit(~PINA,2)){	
 				user_key = 10;
 			}
 			
@@ -899,7 +901,7 @@ void AddUser_Tick(){
 					}
 				}
 			
-				if(keypad_character == '*'){
+				if(keypad_character == '*'){	// clears the user password from the screen and starts over
 					password_size = 0;
 					for(unsigned char i = 0; i < 8; ++i){
 						user_password[i] = '\0';
@@ -973,7 +975,7 @@ void AddUser_Tick(){
 			}
 		
 		
-			if(!password_verification()){
+			if(!password_verification()){	// gives the user three tries to enter correct password or else it takes you back to main menu
 				++password_attempt_fails;
 			}
 		
@@ -1001,7 +1003,7 @@ void AddUser_Tick(){
 	switch(adduser_state){
 		case adduser_init:
 			if(adding_user_flag){
-				if(!keys_have_been_deposited){
+				if(!keys_have_been_deposited){	// needs to make sure the system is not under use
 					if(number_of_users == 4){
 						adding_user_flag = 0;
 						adduser_state = adduser_init;
@@ -1311,7 +1313,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
  char temporary_password[9] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0'};
  unsigned char user_to_remove = 5;
 
- void swap_users(unsigned char dest, unsigned char source){
+ void swap_users(unsigned char dest, unsigned char source){	// this function is to move the users along the array so they appear towards the beginning
 	 char tempname[14] = " ";
 	 char temppass[9] = " ";
 	 unsigned int tempweight = 0;
@@ -1442,7 +1444,7 @@ unsigned char remove_password_verification(){
 	 switch(removeusers){
 		 case removeusers_init:
 			 if(removeusers_flag){
-				 if(number_of_users > 0 && number_of_users < 5){
+				 if(number_of_users > 0 && number_of_users < 5){	//number of users needs to be within appropriate range
 					 removeuser_selection = '\0';
 					 removeuser_prev_selection = '\0';
 					 removeuser_password_fails = 0;
@@ -1450,7 +1452,7 @@ unsigned char remove_password_verification(){
 					 removeusers = removeuser_select;
 				 }
 				 
-				 else if(keys_have_been_deposited || drink_has_been_removed){
+				 else if(keys_have_been_deposited || drink_has_been_removed){	// bug occurs here. needs to be fixed in v2*
 					 nokia_lcd_clear();
 					 nokia_lcd_write_string("System is in  use. Try again later",1);
 					 nokia_lcd_render();
@@ -1493,7 +1495,7 @@ unsigned char remove_password_verification(){
 			break;
 		 
 		 case removeuser_select:
-			 if(removeuser_selection < number_of_users && removeusers_flag){
+			 if(removeuser_selection < number_of_users && removeusers_flag){	//a valid number has to be inputted into keypad
 				 user_to_remove = removeuser_selection;
 				 nokia_lcd_clear();
 				 nokia_lcd_write_string("Enter",1);
@@ -1544,7 +1546,7 @@ unsigned char remove_password_verification(){
 				 removeusers = removeuser_confirm;
 			 }
 		 
-			 else if(removeuser_password_fails == 3 && removeusers_flag){
+			 else if(removeuser_password_fails == 3 && removeusers_flag){	//deny the user from deleting user because multiple failed attempts
 				 removeuser_password_fails = 0;
 				 password_size = 0;
 				 for(unsigned char i = 0; i < 8; ++i){
@@ -1855,7 +1857,7 @@ void AddDrink_Tick(){
 	switch(add_drink_state){
 		case add_drink_init:
 			if(add_drink_flag){
-				if(type_of_drink != 0){
+				if(type_of_drink != 0){	//the number of possible additional drinks has been exceeded
 					nokia_lcd_clear();
 					nokia_lcd_write_string("Can't add     anymore drinksPress # to    continue",1);
 					nokia_lcd_render();
