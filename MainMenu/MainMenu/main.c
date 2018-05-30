@@ -122,7 +122,6 @@ void add_drink_variable_reset(){
 //// Add a drink globals
 
 //// Replace a drink globals
-unsigned char keys_in_safe_flag = 0;	// 0 = false, 1 = true;
 unsigned char replace_drink_flag = 0;
 //// Replace a drink globals
 
@@ -1274,6 +1273,8 @@ void AddUser_Tick(){
 				List_of_Users[number_of_users].weight = user_weight;
 				List_of_Users[number_of_users].key_weight = user_key;
 				++number_of_users;
+				key_door_signal = 0;
+				PORTB = SetBit(PORTB,0,key_door_signal);
 				adduser_state = adduser_init;
 			}
 			
@@ -1444,19 +1445,19 @@ unsigned char remove_password_verification(){
 	 switch(removeusers){
 		 case removeusers_init:
 			 if(removeusers_flag){
-				 if(number_of_users > 0 && number_of_users < 5){	//number of users needs to be within appropriate range
+				 if(keys_have_been_deposited || drink_has_been_removed){
+					 nokia_lcd_clear();
+					 nokia_lcd_write_string("System is in  use. Try again later",1);
+					 nokia_lcd_render();
+					 removeusers = removeuser_deny;
+				 }
+				 
+				 else if(number_of_users > 0 && number_of_users < 5){	//number of users needs to be within appropriate range
 					 removeuser_selection = '\0';
 					 removeuser_prev_selection = '\0';
 					 removeuser_password_fails = 0;
 					 user_to_remove = 5;
 					 removeusers = removeuser_select;
-				 }
-				 
-				 else if(keys_have_been_deposited || drink_has_been_removed){	// bug occurs here. needs to be fixed in v2*
-					 nokia_lcd_clear();
-					 nokia_lcd_write_string("System is in  use. Try again later",1);
-					 nokia_lcd_render();
-					 removeusers = removeuser_deny;
 				 }
 			 
 				 else{
@@ -2029,8 +2030,8 @@ void AddDrink_Tick(){
 				if(volume_of_drink > 999){
 					unsigned char thousands = volume_of_drink / 1000;
 					unsigned char hundreds = (volume_of_drink % 1000) / 100;
-					unsigned char tens = (volume_of_drink % 1000) / (volume_of_drink % 100) / 10;
-					unsigned char ones = (volume_of_drink % 1000) / (volume_of_drink % 100) / (volume_of_drink % 10);
+					unsigned char tens = ((volume_of_drink % 1000) % 100) / 10;
+					unsigned char ones = ((volume_of_drink % 1000) % 100) % 10;
 					nokia_lcd_write_char(thousands + '0',1);
 					nokia_lcd_write_char(hundreds + '0',1);
 					nokia_lcd_write_char(tens + '0',1);
@@ -2041,7 +2042,7 @@ void AddDrink_Tick(){
 				else{
 					unsigned char hundreds = volume_of_drink / 100;
 					unsigned char tens = (volume_of_drink % 100) / 10;
-					unsigned char ones = (volume_of_drink % 100) / (volume_of_drink % 10);
+					unsigned char ones = (volume_of_drink % 100) % 10;
 					nokia_lcd_write_char(hundreds + '0',1);
 					nokia_lcd_write_char(tens + '0',1);
 					nokia_lcd_write_char(ones + '0',1);
@@ -2053,7 +2054,7 @@ void AddDrink_Tick(){
 				if(drink_alcohol_content > 99){
 					unsigned char hundreds = drink_alcohol_content / 100;
 					unsigned char tens = (drink_alcohol_content % 100) / 10;
-					unsigned char ones = (drink_alcohol_content % 100) / (drink_alcohol_content % 10);
+					unsigned char ones = (drink_alcohol_content % 100) % 10;
 					nokia_lcd_write_char(hundreds + '0',1);
 					nokia_lcd_write_char(tens + '0',1);
 					nokia_lcd_write_char(ones + '0',1);
@@ -2185,7 +2186,7 @@ void ReplaceDrink_Tick(){
 	switch(replace_drink_state){
 		case replace_init:
 			if(replace_drink_flag){
-				if(keys_in_safe_flag){
+				if(keys_have_been_deposited){
 					replace_drink_error();
 					replace_drink_state = replace_fail;
 				}
@@ -2644,7 +2645,7 @@ void GetDrink_Tick(){
 		
 			else if(correct_key == 0){
 				nokia_lcd_clear();
-				nokia_lcd_write_string("Incorrect Keys",1);
+				nokia_lcd_write_string("Incorrect Keys. Press any key to return to main menu",1);
 				nokia_lcd_render();
 				correct_user_credentials = 0;
 				get_drink_flag = 0;
@@ -2671,7 +2672,7 @@ void GetDrink_Tick(){
 			if(key_door_sensor){
 				keys_have_been_deposited = 1;
 				nokia_lcd_clear();
-				nokia_lcd_write_string("Enjoy! Press  any key to   continue",1);
+				nokia_lcd_write_string("Enjoy! Press  any key to    continue",1);
 				nokia_lcd_render();
 				drink_has_been_removed = 1;
 				key_door_signal = 0;
@@ -2687,6 +2688,7 @@ void GetDrink_Tick(){
 			}
 		
 		break;
+		
 		
 		default:
 			get_drink_state = gd_init;
@@ -2710,7 +2712,6 @@ void GetDrinkPulse(unsigned portBASE_TYPE Priority)
 }
 
 /////// Get Key State Machine ///////
-
 
 unsigned char gk_selection = '\0';
 unsigned char gk_prev_select = '\0';
@@ -2904,6 +2905,7 @@ void GetKey_Tick(){
 				nokia_lcd_clear();
 				nokia_lcd_write_string("Return Drink  and close door",1);
 				nokia_lcd_render();
+				PORTB = SetBit(PORTB,1,1);
 				get_key_state = gk_door;
 			}
 		
@@ -2954,6 +2956,8 @@ void GetKey_Tick(){
 		case gk_unlock_key:
 			if(gk_selection != '\0'){
 				get_key_flag = 0;
+				drink_has_been_removed = 0;
+				keys_have_been_deposited = 0;
 				get_key_state = gk_init;
 			}
 		
@@ -2992,8 +2996,169 @@ void GetKeyPulse(unsigned portBASE_TYPE Priority){
 	xTaskCreate(GetKeyTask, (signed portCHAR *)"GetKeyTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
 }
 
-
 /////// Get Key State Machine ///////
+
+/////// Auto-lock liquor door State Machine ///////
+// This state machine gives the user a minute to remove the drink 
+// and then locks the door to prevent solenoid lock from overheating
+
+uint16_t liquor_door_counter = 0;
+
+enum AutoLockLiquorDoor {alld_wait, alld_count, alld_lock} auto_lock_liquor_door;	
+	
+void AutoLockLiquorDoor_Init(){
+	auto_lock_liquor_door = alld_wait;
+}
+
+void AutoLockLiquorDoor_Tick(){
+	
+	//Actions
+	switch(auto_lock_liquor_door){
+		case alld_wait:
+			break;
+			
+		case alld_count:
+			break;
+			
+		case alld_lock:
+			break;
+			
+		default:
+			break;
+	}
+	
+	//Transitions
+	switch(auto_lock_liquor_door){
+		case alld_wait:
+			if(drink_has_been_removed && liquor_door_signal){
+				liquor_door_counter = 0;
+				auto_lock_liquor_door = alld_count;
+			}
+			
+			else{
+				auto_lock_liquor_door = alld_wait;
+			}
+			
+			break;
+		
+		case alld_count:
+			if(liquor_door_counter > 3000){	// change to 6000 for 1 minute
+				auto_lock_liquor_door = alld_lock;
+			}
+			
+			else{
+				++liquor_door_counter;
+				auto_lock_liquor_door = alld_count;
+			}
+			
+			break;
+		
+		case alld_lock:
+			liquor_door_signal = 0;
+			PORTB = SetBit(PORTB,1,liquor_door_signal);
+			auto_lock_liquor_door = alld_wait;
+			break;
+		
+		default:
+			auto_lock_liquor_door = alld_wait;
+			break;
+	}
+}
+
+void AutoLockLiquorDoorTask(){
+	
+	AutoLockLiquorDoor_Init();
+	for(;;){
+		AutoLockLiquorDoor_Tick();
+		vTaskDelay(10);
+	}
+}
+
+void AutoLockLiquorDoorPulse(unsigned portBASE_TYPE Priority){
+	xTaskCreate(AutoLockLiquorDoorTask, (signed portCHAR *)"AutoLockLiquorDoorTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+}
+
+/////// Auto-lock liquor door State Machine ///////
+
+/////// Auto-lock key door State Machine ///////
+
+uint16_t key_door_counter = 0;
+enum AutoLockKeyDoor {alkd_wait, alkd_count, alkd_lock} auto_lock_key_door;
+
+void AutoLockKeyDoor_Init(){
+	auto_lock_key_door = alkd_wait;
+}
+
+void AutoLockKeyDoor_Tick(){
+	
+	//Actions
+	switch(auto_lock_key_door){
+		case alkd_wait:
+		break;
+		
+		case alkd_count:
+		break;
+		
+		case alkd_lock:
+		break;
+		
+		default:
+		break;
+	}
+	
+	//Transitions
+	switch(auto_lock_key_door){
+		case alkd_wait:
+			if(!keys_have_been_deposited && key_door_signal){
+				key_door_counter = 0;
+				auto_lock_key_door = alkd_count;
+			}
+		
+			else{
+				auto_lock_key_door = alkd_wait;
+			}
+		
+			break;
+		
+		case alkd_count:
+			if(key_door_counter > 3000){	// change to 6000 for 1 minute
+				auto_lock_key_door = alkd_lock;
+			}
+		
+			else{
+				++key_door_counter;
+				auto_lock_key_door = alkd_count;
+			}
+		
+			break;
+		
+		case alkd_lock:
+			key_door_signal = 0;
+			PORTB = SetBit(PORTB,0,key_door_signal);
+			auto_lock_key_door = alkd_wait;
+			break;
+		
+		default:
+			auto_lock_key_door = alkd_wait;
+			break;
+	}
+}
+
+void AutoLockKeyDoorTask(){
+	
+	AutoLockKeyDoor_Init();
+	for(;;){
+		AutoLockKeyDoor_Tick();
+		vTaskDelay(10);
+	}
+}
+
+void AutoLockKeyDoorPulse(unsigned portBASE_TYPE Priority){
+	xTaskCreate(AutoLockKeyDoorTask, (signed portCHAR *)"AutoLockKeyDoorTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+}
+
+
+/////// Auto-lock key door State Machine ///////
 
 
 int main(void) 
@@ -3004,7 +3169,7 @@ int main(void)
 	when scaling by 3: 5 chars per line, 21 pixels in height
 	*/
 	DDRC = 0x0F;	//Set PC7...PC3 to input, PC2...PC0 to output [0000 1111]
-	PORTC = 0xF0;	//Init port C to 1s							[1111 0000]
+	PORTC = 0xF0;	//Init port C to 1s							  [1111 0000]
 	DDRD = 0xFF;	//Set Port D to output
 	PORTD = 0x00;	//Init Port D to 0s
 	DDRB = 0xFF;	//Controls the locks
@@ -3022,6 +3187,9 @@ int main(void)
 	UserVerifyPulse(1);
 	GetDrinkPulse(1);
 	GetKeyPulse(1);
+	AutoLockLiquorDoorPulse(1);
+	AutoLockKeyDoorPulse(1);
+	
     //RunSchedular 
     vTaskStartScheduler(); 
 	return 0; 
