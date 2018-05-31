@@ -70,6 +70,9 @@ struct User List_of_Users[4] = {	{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},	};
+										
+										
+
 //// Add a drink globals
 unsigned char add_drink_flag = 0;
 unsigned char add_drink_selection = '\0';
@@ -260,6 +263,19 @@ unsigned char AlphaNumPad(){
 }
 
 ////////// End of helper function that returns Numeric & AlphaNumeric Values //////////
+
+////////// Scale reader functions
+
+unsigned char alcohol_scale_reader(){
+	volume_of_drink = volume_of_drink - 100;
+	return 100;
+}
+
+unsigned char key_scale_reader(){
+	return 10;
+}
+
+
 
 ////////// Menu State Machine //////////
 enum MainMenuState {MainMenu, get_drink, get_key, settings, drink_options, 
@@ -2751,8 +2767,11 @@ void GetKey_Tick(){
 		case gk_door:
 			if(GetBit(~PINA,1)){
 				liquor_door_sensor = 1;
+				drink_has_been_removed = 0;
+				amount_alcohol_consumed = alcohol_scale_reader();
 			}
-		
+			
+			/*
 			if(GetBit(~PINA,5)){
 				drink_has_been_removed = 0;
 				amount_alcohol_consumed = 100;
@@ -2763,6 +2782,8 @@ void GetKey_Tick(){
 				amount_alcohol_consumed = 200;
 			}
 		
+			*/
+			
 			else{
 				drink_has_been_removed = 1;
 				liquor_door_sensor = 0;
