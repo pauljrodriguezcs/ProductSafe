@@ -24,9 +24,9 @@ void settings_submenu_display(){
 	nokia_lcd_set_cursor(2,20);
 	nokia_lcd_write_string("2: Users",1);
 	nokia_lcd_set_cursor(2,30);
-	nokia_lcd_write_string("3: System",1);
-	nokia_lcd_set_cursor(2, 40);
-	nokia_lcd_write_string("4: Main Menu",1);
+	//nokia_lcd_write_string("3: System",1);
+	//nokia_lcd_set_cursor(2, 40);
+	nokia_lcd_write_string("3: Main Menu",1);
 	nokia_lcd_render();
 	return;
 }

@@ -7,8 +7,8 @@
 
     #define PD_SCK_SET_OUTPUT   PD_SCK_DDR |= (1<<PD_SCK_PIN)
 
-    #define PD_SCK_SET_HIGH     PD_SCK_PORT |= (1<<PD_SCK_PIN); _NOP(); _NOP(); _NOP(); _NOP(); _NOP();
-    #define PD_SCK_SET_LOW      PD_SCK_PORT &= ~(1<<PD_SCK_PIN); _NOP(); _NOP(); _NOP(); _NOP();
+    #define PD_SCK_SET_HIGH     PD_SCK_PORT |= (1<<PD_SCK_PIN)
+    #define PD_SCK_SET_LOW      PD_SCK_PORT &= ~(1<<PD_SCK_PIN)
 
     #define DOUT_PORT           PORTD                           // Serial Data Output Port
     #define DOUT_DDR            DDRD                            // Serial Data Output DDR
@@ -22,39 +22,61 @@
     #define DOUT_SET_OUTPUT     DOUT_DDR |= (1<<DOUT_PIN); DOUT_SET_LOW
 
     uint8_t GAIN;		                // amplification factor
-    int32_t OFFSET;	                    // used for tare weight
+    double OFFSET;	                // used for tare weight
     float SCALE;	                    // used to return weight in grams, kg, ounces, whatever
 
-	void HX711_init(void);
+	// define clock and data pin, channel, and gain factor
+	// channel selection is made by passing the appropriate gain: 128 or 64 for channel A, 32 for channel B
+	// gain: 128 or 64 for channel A; channel B works with 32 gain factor only
+	void HX711_init(uint8_t gain);
 
-	bool HX711_isReady();
+	// check if HX711 is ready
+	// from the datasheet: When output data is not ready for retrieval, digital output pin DOUT is high. Serial clock
+	// input PD_SCK should be low. When DOUT goes to low, it indicates data is ready for retrieval.
+	int HX711_is_ready(void);
 
-	/// Set the GAIN parameter for use in HX711_read()
-	void HX711_setGain(uint8_t gain);
+	// set the gain factor; takes effect only after a call to read()
+	// channel A can be set for a 128 or 64 gain; channel B has a fixed 32 gain
+	// depending on the parameter, the channel is also set to either A or B
+	void HX711_set_gain(uint8_t gain);
 
-	/// Set the OFFSET parameter for use in HX711_tare()
-	void HX711_setOffset(uint32_t offset);
+	// waits for the chip to be ready and returns a reading
+	uint32_t HX711_read(void);
 
-	/// Set the SCALE parameter for use in HX711_getUnits()
-	void HX711_setScale(float scale);
+	// returns an average reading; times = how many times to read
+	uint32_t HX711_read_average(uint8_t times);
 
-	/// Reads the raw ADC value
-	int32_t HX711_read();
+	// returns (read_average() - OFFSET), that is the current value without the tare weight; times = how many readings to do
+	double HX711_get_value(uint8_t times);
 
-	/// Reads the raw ADC value n times and calculates the average
-	int32_t HX711_readAverage(uint8_t times);
+	// returns get_value() divided by SCALE, that is the raw value divided by a value obtained via calibration
+	// times = how many readings to do
+	float HX711_get_units(uint8_t times);
 
-	/// Read the raw ADC value and subtract the tare value
-	int32_t HX711_getValue(uint8_t times);
-
-	/// Calculate the weight using the SCALE parameter. Outputs real units
-	double HX711_getUnits(uint8_t times);
-
-	/// Zero the scale
+	// set the OFFSET value for tare weight; times = how many times to read the tare value
 	void HX711_tare(uint8_t times);
 
-	void HX711_powerDown();
+	// set the SCALE value; this value is used to convert the raw data to "human readable" data (measure units)
+	void HX711_set_scale(float scale);
 
-	void HX711_powerUp();
+	// get the current SCALE
+	float HX711_get_scale(void);
+
+	// set OFFSET, the value that's subtracted from the actual reading (tare weight)
+	void HX711_set_offset(double offset);
+
+	// get the current OFFSET
+	double HX711_get_offset(void);
+
+	// puts the chip into power down mode
+	void HX711_power_down(void);
+
+	// wakes up the chip after power down mode
+	void HX711_power_up(void);
+
+    // Sends/receives data. Modified from Arduino source
+	uint8_t shiftIn(void);
+
+	unsigned long HX711_Read(void);
 
 #endif /* HX711_h */

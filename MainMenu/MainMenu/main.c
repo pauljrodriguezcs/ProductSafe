@@ -20,7 +20,6 @@
 #include "task.h" 
 #include "croutine.h"
 
-
 // System flags to be used to control different state machines
 unsigned char system_init;
 unsigned char main_menu_init;
@@ -34,13 +33,15 @@ unsigned char removeusers_flag = 0;
 unsigned char user_verify_flag = 0;
 unsigned char get_drink_flag = 0;
 unsigned char get_key_flag = 0;
+unsigned char time_elapsed_flag = 0;
 unsigned char correct_user_credentials = 0;
 unsigned char number_of_users = 0;
 
 // Flags to be used by the timer state machine *To be implemented in v2*
 unsigned char current_user = 5;			// user that is using the system;
 unsigned char timer_is_on = 0;			// timer that will be turned on if not sober
-uint16_t current_timer = 0;				// keeps track of elapsed time
+uint16_t time_elapsed_counter = 0;		// keeps track of elapsed time
+uint16_t time_remaining_counter = 0;	// time remaining to unlock door
 
 const double male_constant = 0.68;
 const double female_constant = 0.55;
@@ -71,8 +72,6 @@ struct User List_of_Users[4] = {	{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},
 									{"_", 0, 0, 0, "00000000"},	};
 										
-										
-
 //// Add a drink globals
 unsigned char add_drink_flag = 0;
 unsigned char add_drink_selection = '\0';
@@ -485,6 +484,7 @@ void MainMenu_Tick(){
 				user_submenu_display();
 			}
 			
+			/*
 			else if(settings_menu_selection == '3'){
 				mainmenu_state = system_options;
 				nokia_lcd_clear();
@@ -493,8 +493,9 @@ void MainMenu_Tick(){
 				nokia_lcd_write_string("# to return",1);
 				nokia_lcd_render();
 			}
+			*/
 			
-			else if(settings_menu_selection == '4'){
+			else if(settings_menu_selection == '3'){
 				mainmenu_state = MainMenu;
 				main_menu_selection = '\0';
 				temp_menu_selection = '\0';
@@ -641,7 +642,8 @@ void MainMenu_Tick(){
 			}
 			
 			break;
-			
+		
+		/*	
 		case system_options:
 			if(temp_menu_selection == '#'){
 				mainmenu_state = MainMenu;
@@ -658,6 +660,7 @@ void MainMenu_Tick(){
 			}
 
 			break;
+		*/
 		
 		default:
 			mainmenu_state = MainMenu;
@@ -1232,6 +1235,7 @@ void AddUser_Tick(){
 				}
 			
 				nokia_lcd_render();
+				adding_user_finished = 1;
 				adduser_state = adduser_finished;
 			}
 		
@@ -1282,6 +1286,7 @@ void AddUser_Tick(){
 		
 		case adduser_finished:
 			if(adding_user_finished){
+				adding_user_finished = 0;
 				adding_user_flag = 0;
 				strncpy(List_of_Users[number_of_users].name,user_name,sizeof(List_of_Users[number_of_users].name));
 				strncpy(List_of_Users[number_of_users].password,user_password,sizeof(List_of_Users[number_of_users].password));
@@ -1885,6 +1890,8 @@ void AddDrink_Tick(){
 					nokia_lcd_clear();
 					nokia_lcd_write_string("No users in   system. Press any key to go to Main Menu.",1);
 					nokia_lcd_render();
+					add_drink_flag = 0;
+					user_verify_flag = 0;
 					add_drink_state = add_drink_no_user;
 				}
 				else{
@@ -2118,6 +2125,9 @@ void AddDrink_Tick(){
 			}
 		
 			else if(add_drink_selection == '#'){
+				//eeprom_update_byte(&e_type_of_drink,type_of_drink);
+				//eeprom_update_byte(&e_drink_alcohol_content,drink_alcohol_content);
+				//eeprom_update_word(&e_volume_of_drink,volume_of_drink);
 				add_drink_variable_reset();
 				add_drink_flag = 0;
 				add_drink_state = add_drink_init;
@@ -2734,7 +2744,7 @@ unsigned char gk_prev_select = '\0';
 unsigned char amount_alcohol_consumed = 0;
 
 
-enum GetKeyState {gk_init,gk_no_user, gk_no_drink, gk_timer, gk_user, gk_door, gk_math, gk_unlock_key, gk_timer_init} get_key_state;
+enum GetKeyState {gk_init,gk_no_user, gk_no_drink, gk_user, gk_door, gk_math, gk_unlock_key, gk_timer_init} get_key_state;
 
 void GetKey_Init(){
 	get_key_state = gk_init;
@@ -2756,33 +2766,37 @@ void GetKey_Tick(){
 			while((gk_prev_select = GetKeypadKey()) == gk_selection){ _delay_ms(200); }
 			break;
 		
-		case gk_timer:
-			while((gk_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
-			while((gk_prev_select = GetKeypadKey()) == gk_selection){ _delay_ms(200); }
-			break;
-		
+	
 		case gk_user:
 			break;
 		
 		case gk_door:
 			if(GetBit(~PINA,1)){
 				liquor_door_sensor = 1;
-				drink_has_been_removed = 0;
-				amount_alcohol_consumed = alcohol_scale_reader();
+				//drink_has_been_removed = 0;
+				//amount_alcohol_consumed = alcohol_scale_reader();
 			}
 			
-			/*
+			
 			if(GetBit(~PINA,5)){
 				drink_has_been_removed = 0;
 				amount_alcohol_consumed = 100;
+				volume_of_drink = volume_of_drink - amount_alcohol_consumed;
+				
+				if(volume_of_drink == 0){
+					type_of_drink = 0;
+				}
 			}
 		
 			else if(GetBit(~PINA,4)){
 				drink_has_been_removed = 0;
 				amount_alcohol_consumed = 200;
+				volume_of_drink = volume_of_drink - amount_alcohol_consumed;
+				
+				if(volume_of_drink == 0){
+					type_of_drink = 0;
+				}
 			}
-		
-			*/
 			
 			else{
 				drink_has_been_removed = 1;
@@ -2795,7 +2809,6 @@ void GetKey_Tick(){
 			;
 			double grams_of_alcohol_consumed;
 			grams_of_alcohol_consumed =  (0.789 * (amount_alcohol_consumed * .033814) * (double)drink_alcohol_content);
-			grams_of_alcohol_consumed = grams_of_alcohol_consumed / 100;
 		
 			double weight_grams;
 			weight_grams = (double)List_of_Users[current_user].weight * 454.0;
@@ -2803,15 +2816,20 @@ void GetKey_Tick(){
 			double bac = 0.0;
 		
 			if(List_of_Users[current_user].gender == 1){
-				bac = (grams_of_alcohol_consumed/(weight_grams * male_constant)) * 1000000;
+				bac = (grams_of_alcohol_consumed/(weight_grams * male_constant)) * 100;
 			}
 		
 			else{
-				bac = (grams_of_alcohol_consumed/(weight_grams * female_constant)) * 1000000;
+				bac = (grams_of_alcohol_consumed/(weight_grams * female_constant)) * 100;
 			}
-		
-		
-			if(bac > (List_of_Users[current_user].weight * .08)){
+			
+			double bac_elapsed_time = (double)time_elapsed_counter * 0.000004167;
+			
+			bac = bac - bac_elapsed_time;
+			
+			if(bac > .08){
+				bac_elapsed_time = bac - .08;
+				time_remaining_counter = ((bac_elapsed_time / 0.015) * 36);
 				timer_is_on = 1;
 			}
 		
@@ -2826,12 +2844,34 @@ void GetKey_Tick(){
 			break;
 		
 		case gk_timer_init:
-			while((gk_selection = GetKeypadKey()) == '\0'){ _delay_ms(200); }
-			while((gk_prev_select = GetKeypadKey()) == gk_selection){ _delay_ms(200); }
+			;
+			uint16_t temp_time = time_remaining_counter / 2 ;
+			unsigned char hours = temp_time / 3600;
+			unsigned char minutes = (temp_time % 3600) / 60;
+			unsigned char seconds = temp_time % 60;
+			unsigned char hours_tens = hours / 10;
+			unsigned char hours_ones = hours % 10;
+			unsigned char minutes_tens = minutes / 10;
+			unsigned char minutes_ones = minutes % 10;
+			unsigned char seconds_tens = seconds / 10;
+			unsigned char seconds_ones = seconds % 10;
+			
+			nokia_lcd_clear();
+			nokia_lcd_write_string("Time Remaining",1);
+			nokia_lcd_set_cursor(0,10);
+			nokia_lcd_write_char(hours_tens + '0',1);
+			nokia_lcd_write_char(hours_ones + '0',1);
+			nokia_lcd_write_char(':',1);
+			nokia_lcd_write_char(minutes_tens + '0',1);
+			nokia_lcd_write_char(minutes_ones + '0',1);
+			nokia_lcd_write_char(':',1);
+			nokia_lcd_write_char(seconds_tens + '0',1);
+			nokia_lcd_write_char(seconds_ones + '0',1);
+			nokia_lcd_render();
 			break;
 		
 		default:
-		break;
+			break;
 	}
 	
 	//Transitions
@@ -2860,14 +2900,6 @@ void GetKey_Tick(){
 					nokia_lcd_render();
 					user_verify_flag = 0;
 					get_key_state = gk_no_drink;
-				}
-			
-				else if(timer_is_on){
-					nokia_lcd_clear();
-					nokia_lcd_write_string("Time Remaining",1);
-					nokia_lcd_render();
-					user_verify_flag = 0;
-					get_key_state = gk_timer;
 				}
 			
 				else{
@@ -2904,18 +2936,6 @@ void GetKey_Tick(){
 			}
 			break;
 		
-			case gk_timer:
-			if(gk_selection != '\0'){
-				get_key_flag = 0;
-				get_key_state = gk_init;
-			}
-		
-			else{
-				get_key_state = gk_timer;
-			}
-			break;
-		
-		
 		case gk_user:
 			if(user_verify_flag){
 				get_key_state = gk_user;
@@ -2948,14 +2968,8 @@ void GetKey_Tick(){
 			break;
 		
 		case gk_math:
-		
 			if(timer_is_on){
-				nokia_lcd_clear();
-				nokia_lcd_write_string("Time Remaining",1);
-				nokia_lcd_render();
-				timer_is_on = 0;
 				get_key_state = gk_timer_init;
-			
 			}
 		
 			else if(!timer_is_on){
@@ -2988,14 +3002,24 @@ void GetKey_Tick(){
 			break;
 		
 		case gk_timer_init:
-			if(gk_selection != '\0'){
-				get_key_flag = 0;
-				get_key_state = gk_init;
+			if(time_remaining_counter > 0){
+				--time_remaining_counter;
+				get_key_state = gk_timer_init;
+				
+			}
+			
+			else if(time_remaining_counter == 0){
+				nokia_lcd_clear();
+				nokia_lcd_write_string("Remove keys.  Press any key to go to Main Menu.",1);
+				nokia_lcd_render();
+				timer_is_on = 0;
+				key_door_signal = 1;
+				liquor_door_signal = 0;
+				PORTB = SetBit(PORTB,0,key_door_signal);
+				PORTB = SetBit(PORTB,1,liquor_door_signal);
+				get_key_state = gk_unlock_key;
 			}
 		
-			else{
-				get_key_state = gk_timer_init;
-			}
 			break;
 		
 		default:
@@ -3181,6 +3205,69 @@ void AutoLockKeyDoorPulse(unsigned portBASE_TYPE Priority){
 
 /////// Auto-lock key door State Machine ///////
 
+/////// Time-elapsed since drink has been removed state machine /////
+enum TimeElapsedState {te_wait, te_counter} time_elapsed_state;
+	
+void TimeElapsed_Init(){
+	time_elapsed_state = te_wait;
+}
+
+void TimeElapsed_Tick(){
+	//Actions
+	switch(time_elapsed_state){
+		case te_wait:
+			break;
+		
+		case te_counter:
+			++time_elapsed_counter;
+			break;
+		
+		default:
+			break;
+	}
+	
+	//Transitions
+	switch(time_elapsed_state){
+		case te_wait:
+			if(drink_has_been_removed){
+				time_elapsed_counter = 0;
+				time_elapsed_state = te_counter;
+			}
+			
+			else{
+				time_elapsed_state = te_wait;
+			}
+			break;
+		
+		case te_counter:
+			if(!drink_has_been_removed){
+				time_elapsed_state = te_wait;
+			}
+			
+			else{
+				time_elapsed_state = te_counter;
+			}
+			break;
+		
+		default:
+			time_elapsed_state = te_wait;
+			break;
+	}
+}
+
+void TimeElapsedTask(){
+	TimeElapsed_Init();
+	for(;;){
+		TimeElapsed_Tick();
+		vTaskDelay(500);
+	}
+}
+
+void TimeElapsedPulse(unsigned portBASE_TYPE Priority){
+	xTaskCreate(TimeElapsedTask, (signed portCHAR *)"TimeElapsedTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
+}
+
+/////// Time-elapsed since drink has been removed state machine /////
 
 int main(void) 
 {
@@ -3198,7 +3285,8 @@ int main(void)
 	DDRA = 0x00;	//Controls the sensors to make sure door is locked
 	PORTA = 0xFF;
 	nokia_lcd_init();
-		
+
+	
     //Start Tasks  
     MainMenuPulse(1);
 	AddUserPulse(1);
@@ -3210,6 +3298,7 @@ int main(void)
 	GetKeyPulse(1);
 	AutoLockLiquorDoorPulse(1);
 	AutoLockKeyDoorPulse(1);
+	TimeElapsedPulse(1);
 	
     //RunSchedular 
     vTaskStartScheduler(); 
