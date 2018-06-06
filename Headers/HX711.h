@@ -1,19 +1,19 @@
 #ifndef HX711_h
 #define HX711_h
 
-    #define PD_SCK_PORT         PORTD	                        // Power Down and Serial Clock Input Port
-    #define PD_SCK_DDR          DDRD                            // Power Down and Serial Clock DDR
-    #define PD_SCK_PIN          PD5                             // Power Down and Serial Clock Pin
+    #define PD_SCK_PORT         PORTA	                        // Power Down and Serial Clock Input Port
+    #define PD_SCK_DDR          DDRA                            // Power Down and Serial Clock DDR
+    #define PD_SCK_PIN          PA3                             // Power Down and Serial Clock Pin
 
     #define PD_SCK_SET_OUTPUT   PD_SCK_DDR |= (1<<PD_SCK_PIN)
 
     #define PD_SCK_SET_HIGH     PD_SCK_PORT |= (1<<PD_SCK_PIN)
     #define PD_SCK_SET_LOW      PD_SCK_PORT &= ~(1<<PD_SCK_PIN)
 
-    #define DOUT_PORT           PORTD                           // Serial Data Output Port
-    #define DOUT_DDR            DDRD                            // Serial Data Output DDR
-    #define DOUT_INPUT          PIND                            // Serial Data Output Input
-    #define DOUT_PIN            PD6 		                    // Serial Data Output Pin
+    #define DOUT_PORT           PORTA                           // Serial Data Output Port
+    #define DOUT_DDR            DDRA                            // Serial Data Output DDR
+    #define DOUT_INPUT          PINA                            // Serial Data Output Input
+    #define DOUT_PIN            PA2 		                    // Serial Data Output Pin
     #define DOUT_READ           (DOUT_INPUT & (1<<DOUT_PIN))    // Serial Data Output Read Pin
 
     #define DOUT_SET_HIGH       DOUT_PORT |= (1<<DOUT_PIN)

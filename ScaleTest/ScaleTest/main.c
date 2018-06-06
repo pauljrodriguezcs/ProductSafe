@@ -14,7 +14,7 @@
 
 
 #include "nokia5110.h"
-#include "HX711.h"
+#include "HX711_1.h"
 
 			
 void output_value(long data_value){
@@ -82,7 +82,7 @@ void test(){
 	long weight = 0;
 	long compare_weight = 0;
 	
-	weight = HX711_get_units(10);
+	weight = HX711_1_get_units(10);
 	if(weight < 0){
 		weight = 0;
 	}
@@ -93,13 +93,13 @@ void test(){
 		nokia_lcd_write_string("Remove items  from scale",1);
 		nokia_lcd_render();
 		
-		weight = HX711_get_units(10);
+		weight = HX711_1_get_units(10);
 		if(weight < 0){
 			weight = 0;
 		}
 	}
 	
-	weight = HX711_get_units(10);
+	weight = HX711_1_get_units(10);
 	if(weight < 0){
 		weight = 0;
 	}
@@ -109,13 +109,13 @@ void test(){
 		nokia_lcd_write_string("Weigh item",1);
 		nokia_lcd_render();
 		
-		weight = HX711_get_units(10);
+		weight = HX711_1_get_units(10);
 		if(weight < 0){
 			weight = 0;
 		}
 	}
 	
-	weight = HX711_get_units(10);
+	weight = HX711_1_get_units(10);
 	//output_value(weight);
 	compare_weight = weight;
 
@@ -124,13 +124,13 @@ void test(){
 		nokia_lcd_write_string("Remove items  from scale",1);
 		nokia_lcd_render();
 		
-		weight = HX711_get_units(10);
+		weight = HX711_1_get_units(10);
 		if(weight < 0){
 			weight = 0; 
 		}
 	}
 	
-	weight = HX711_get_units(10);
+	weight = HX711_1_get_units(10);
 	if(weight < 0){
 		weight = 0;
 	}
@@ -140,7 +140,7 @@ void test(){
 		nokia_lcd_write_string("Weigh item",1);
 		nokia_lcd_render();
 		
-		weight = HX711_get_units(10);
+		weight = HX711_1_get_units(10);
 		if(weight < 0){
 			weight = 0;
 		}
@@ -166,21 +166,23 @@ void calibrate(){
 	long max_weight = 0;
 	long min_weight = 0;
 	
-	max_weight = HX711_read_average(10);
-	min_weight = HX711_read_average(10);
-	//max_weight = HX711_get_units(10);
-	//min_weight = HX711_get_units(10);
+	//max_weight = HX711_read_average(10);
+	//min_weight = HX711_read_average(10);
+
+	max_weight = HX711_1_get_units(1);
+	min_weight = HX711_1_get_units(1);
 	
 	while(1){
 		//weight = HX711_read();
-		weight = HX711_read_average(10);
-		//weight = HX711_get_units(10);
+		//weight = HX711_read_average(10);
+		weight = HX711_1_get_units(10);
 		
-		///*
+		/*
 		// finds the max values
 		for(unsigned char t = 0; t < 10; t++){
-			
-			weight = HX711_get_units(10);
+			//weight = HX711_read();
+			//weight = HX711_read_average(10);
+			weight = HX711_get_units(1);
 			
 			if(weight > max_weight){
 				max_weight = weight;
@@ -188,14 +190,14 @@ void calibrate(){
 		}
 		
 		output_value(max_weight);
-		//*/
+		*/
 		
 		/*
 		// finds the min values
 		for(unsigned char t = 0; t < 10; t++){
-			
-			weight = HX711_read_average(10);
-			//weight = HX711_get_units(10);
+			//weight = HX711_read();
+			//weight = HX711_read_average(10);
+			weight = HX711_get_units(1);
 			
 			if(weight < min_weight){
 				min_weight = weight;
@@ -205,48 +207,60 @@ void calibrate(){
 		output_value(min_weight);
 		*/
 		
-		//output_value(weight);
+		output_value(weight);
 	}
 	
 	return;
 }
+
+void test_scale(){
+	long weight = 0;
+	while(1){
+		weight = HX711_1_get_units(10);
+		output_value(weight);
+	}
+}
  
 int main(void) 
 { 
-	DDRA = 0x00; PORTA=0xFF;
-	DDRC = 0xFF; PORTC = 0x00;
+	//////HX711_init(128);						// values for 1kg scale
+	//////HX711_set_offset(8409384);			// values for 1kg scale
+	//////HX711_set_scale(-946.4825995);		// values for 1kg scale
 	
-	nokia_lcd_init();
-	
-	nokia_lcd_clear();
-	nokia_lcd_write_string("pre-init",1);
-	nokia_lcd_render();
-	
-	HX711_init(32);
-	
-	nokia_lcd_clear();
-	nokia_lcd_write_string("post-init",1);
-	nokia_lcd_render();
-		
 	//////HX711_init(64);						// values for 5kg scale
 	//////HX711_set_offset(8404767);			// values for 5kg scale
 	//////HX711_set_scale(-160.6693354);		// values for 5kg scale
 	
-	
-	
 	/*
-	b_32 = [ , ] range() = 
+	b_32 = [8385785,8385831] range() = 46
 	b_64 = [8394727,8399057] range() = 4330
-	b_128 = [ , ] range() = 
+	b_128 = [8409384,8411163] range() = 1779
 	
+	x_128 = [7889134,7894109] range() = 4975
 	
+	m_max = -1.065429803
+	m_avg = -1.065652991
+	m_min = -1.065876179
 	
+	y_min = 481094 / 544 = 884.3639706
+	y_max = 485251 / 544 = 892.0055147
 	
+	y_min = 120343 / 138 = 872.0507246
+	y_max = 124741 / 138 = 903.9202899
 	
 	*/
-						
-	calibrate();
+	
+	DDRD = 0xFF; PORTD = 0x00;
+	
+	nokia_lcd_init();
+	
+	HX711_1_init(128);
+	HX711_1_set_offset(8409384);
+	HX711_1_set_scale(-946.4825995);	
+					
+	//calibrate();
 	//test();
+	test_scale();
 	
 	return 0; 
 }

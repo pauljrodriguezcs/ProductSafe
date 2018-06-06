@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
-#include "HX711.h"
+#include "HX711_1.h"
 /*
 void HX711_init(uint8_t gain);
 int HX711_is_ready();
@@ -22,42 +22,42 @@ void HX711_power_down();
 void HX711_power_up();
 uint8_t shiftIn(void);
 */
-void HX711_init(uint8_t gain)
+void HX711_1_init(uint8_t gain)
 {
-    PD_SCK_SET_OUTPUT;
-    DOUT_SET_INPUT;
+    PD_SCK_SET_OUTPUT_1;
+    DOUT_SET_INPUT_1;
 
-    HX711_set_gain(gain);
+    HX711_1_set_gain(gain);
 }
 
-int HX711_is_ready(void)
+int HX711_1_is_ready(void)
 {
-    return (DOUT_INPUT & (1 << DOUT_PIN)) == 0;
+    return (DOUT_INPUT_1 & (1 << DOUT_PIN_1)) == 0;
 }
 
-void HX711_set_gain(uint8_t gain)
+void HX711_1_set_gain(uint8_t gain)
 {
 	switch (gain)
 	{
 		case 128:		// channel A, gain factor 128
-			GAIN = 1;
+			GAIN_1 = 1;
 			break;
 		case 64:		// channel A, gain factor 64
-			GAIN = 3;
+			GAIN_1 = 3;
 			break;
 		case 32:		// channel B, gain factor 32
-			GAIN = 2;
+			GAIN_1 = 2;
 			break;
 	}
 
-	PD_SCK_SET_LOW;
-	HX711_read();
+	PD_SCK_SET_LOW_1;
+	HX711_1_read();
 }
 
-uint32_t HX711_read(void)
+uint32_t HX711_1_read(void)
 {
 	// wait for the chip to become ready
-	while (!HX711_is_ready());
+	while (!HX711_1_is_ready());
 
     unsigned long count; 
     unsigned char i;
@@ -70,23 +70,23 @@ uint32_t HX711_read(void)
 	*/
 	
     count=0; 
-    while(DOUT_READ); 
+    while(DOUT_READ_1); 
     for(i=0;i<24;i++)
     { 
-        PD_SCK_SET_HIGH; 
+        PD_SCK_SET_HIGH_1; 
         _delay_us(1);
         count=count<<1; 
-        PD_SCK_SET_LOW; 
+        PD_SCK_SET_LOW_1; 
         _delay_us(1);
-        if(DOUT_READ)
+        if(DOUT_READ_1)
             count++; 
     }
 	
 	// following for loop was added by me
-	for(i=0;i<GAIN;i++){
-		PD_SCK_SET_HIGH;
+	for(i=0;i<GAIN_1;i++){
+		PD_SCK_SET_HIGH_1;
 		_delay_us(1);
-		PD_SCK_SET_LOW;
+		PD_SCK_SET_LOW_1;
 		_delay_us(1);
 	}
 	
@@ -103,74 +103,74 @@ uint32_t HX711_read(void)
     return(count);
 }
 
-uint32_t HX711_read_average(uint8_t times)
+uint32_t HX711_1_read_average(uint8_t times)
 {
 	uint32_t sum = 0;
 	for (uint8_t i = 0; i < times; i++)
 	{
-		sum += HX711_read();
+		sum += HX711_1_read();
 		// TODO: See if yield will work | yield();
 	}
 	return sum / times;
 }
 
-double HX711_get_value(uint8_t times)
+double HX711_1_get_value(uint8_t times)
 {
-	return HX711_read_average(times) - OFFSET;
+	return HX711_1_read_average(times) - OFFSET_1;
 }
 
-float HX711_get_units(uint8_t times)
+float HX711_1_get_units(uint8_t times)
 {
-	return HX711_get_value(times) / SCALE;
+	return HX711_1_get_value(times) / SCALE_1;
 }
 
-void HX711_tare(uint8_t times)
+void HX711_1_tare(uint8_t times)
 {
-	double sum = HX711_read_average(times);
-	HX711_set_offset(sum);
+	double sum = HX711_1_read_average(times);
+	HX711_1_set_offset(sum);
 }
 
-void HX711_set_scale(float scale)
+void HX711_1_set_scale(float scale)
 {
-	SCALE = scale;
+	SCALE_1 = scale;
 }
 
-float HX711_get_scale(void)
+float HX711_1_get_scale(void)
 {
-	return SCALE;
+	return SCALE_1;
 }
 
-void HX711_set_offset(double offset)
+void HX711_1_set_offset(double offset)
 {
-    OFFSET = offset;
+    OFFSET_1 = offset;
 }
 
-double HX711_get_offset(void)
+double HX711_1_get_offset(void)
 {
-	return OFFSET;
+	return OFFSET_1;
 }
 
-void HX711_power_down(void)
+void HX711_1_power_down(void)
 {
-	PD_SCK_SET_LOW;
-	PD_SCK_SET_HIGH;
+	PD_SCK_SET_LOW_1;
+	PD_SCK_SET_HIGH_1;
 	_delay_us(70);
 }
 
-void HX711_power_up(void)
+void HX711_1_power_up(void)
 {
-	PD_SCK_SET_LOW;
+	PD_SCK_SET_LOW_1;
 }
 
-uint8_t shiftIn(void)
+uint8_t shiftIn_1(void)
 {
     uint8_t value = 0;
 
     for (uint8_t i = 0; i < 8; ++i)
     {
-        PD_SCK_SET_HIGH;
-        value |= DOUT_READ << (7 - i);
-        PD_SCK_SET_LOW;
+        PD_SCK_SET_HIGH_1;
+        value |= DOUT_READ_1 << (7 - i);
+        PD_SCK_SET_LOW_1;
     }
     return value;
 }
