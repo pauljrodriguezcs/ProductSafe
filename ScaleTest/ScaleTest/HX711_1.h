@@ -3,7 +3,7 @@
 
     #define PD_SCK_PORT_1         PORTA	                        // Power Down and Serial Clock Input Port
     #define PD_SCK_DDR_1          DDRA                            // Power Down and Serial Clock DDR
-    #define PD_SCK_PIN_1          PA1                             // Power Down and Serial Clock Pin
+    #define PD_SCK_PIN_1          PA3                             // Power Down and Serial Clock Pin
 
     #define PD_SCK_SET_OUTPUT_1   PD_SCK_DDR_1 |= (1<<PD_SCK_PIN_1)
 
@@ -13,7 +13,7 @@
     #define DOUT_PORT_1           PORTA                           // Serial Data Output Port
     #define DOUT_DDR_1            DDRA                            // Serial Data Output DDR
     #define DOUT_INPUT_1          PINA                            // Serial Data Output Input
-    #define DOUT_PIN_1            PA0 		                    // Serial Data Output Pin
+    #define DOUT_PIN_1            PA2 		                    // Serial Data Output Pin
     #define DOUT_READ_1           (DOUT_INPUT_1 & (1<<DOUT_PIN_1))    // Serial Data Output Read Pin
 
     #define DOUT_SET_HIGH_1       DOUT_PORT_1 |= (1<<DOUT_PIN_1)

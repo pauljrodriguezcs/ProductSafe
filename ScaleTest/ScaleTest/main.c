@@ -166,23 +166,24 @@ void calibrate(){
 	long max_weight = 0;
 	long min_weight = 0;
 	
-	//max_weight = HX711_read_average(10);
-	//min_weight = HX711_read_average(10);
-
-	max_weight = HX711_1_get_units(1);
-	min_weight = HX711_1_get_units(1);
+	//max_weight = HX711_1_read();
+	//min_weight = HX711_1_read();
+	max_weight = HX711_1_read_average(10);
+	min_weight = HX711_1_read_average(10);
+	//max_weight = HX711_1_get_units(1);
+	//min_weight = HX711_1_get_units(1);
 	
 	while(1){
-		//weight = HX711_read();
-		//weight = HX711_read_average(10);
+		//weight = HX711_1_read();
+		//weight = HX711_1_read_average(10);
 		weight = HX711_1_get_units(10);
 		
 		/*
 		// finds the max values
 		for(unsigned char t = 0; t < 10; t++){
-			//weight = HX711_read();
-			//weight = HX711_read_average(10);
-			weight = HX711_get_units(1);
+			//weight = HX711_1_read();
+			weight = HX711_1_read_average(10);
+			//weight = HX711_1_get_units(1);
 			
 			if(weight > max_weight){
 				max_weight = weight;
@@ -195,9 +196,9 @@ void calibrate(){
 		/*
 		// finds the min values
 		for(unsigned char t = 0; t < 10; t++){
-			//weight = HX711_read();
-			//weight = HX711_read_average(10);
-			weight = HX711_get_units(1);
+			weight = HX711_1_read();
+			//weight = HX711_1_read_average(10);
+			//weight = HX711_1_get_units(1);
 			
 			if(weight < min_weight){
 				min_weight = weight;
@@ -254,13 +255,15 @@ int main(void)
 	
 	nokia_lcd_init();
 	
-	HX711_1_init(128);
-	//HX711_1_set_offset(8409384);
-	//HX711_1_set_scale(-946.4825995);	
-					
+	//HX711_1_init(128);						// values for 1kg scale
+	//HX711_1_set_offset(8409384);			// values for 1kg scale
+	//HX711_1_set_scale(-946.4825995);		// values for 1kg scale	
+	HX711_1_init(64);						// values for 5kg scale
+	HX711_1_set_offset(8406650);			// values for 5kg scale
+	HX711_1_set_scale(-163.4955075);		// values for 5kg scale				
 	calibrate();
 	//test();
-	//test_scale();
+	///test_scale();
 	
 	return 0; 
 }

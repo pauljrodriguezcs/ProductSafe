@@ -1387,6 +1387,7 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 char temppass[9] = " ";
 	 unsigned int tempweight = 0;
 	 unsigned char tempgender = 0;
+	 long temp_key = 0;
 	 
 	 strncpy(tempname,List_of_Users[dest].name,sizeof(tempname));
 	 strncpy(List_of_Users[dest].name,List_of_Users[source].name,sizeof(List_of_Users[dest].name));
@@ -1403,6 +1404,10 @@ void AddUserPulse(unsigned portBASE_TYPE Priority)
 	 tempgender = List_of_Users[dest].gender;
 	 List_of_Users[dest].gender = List_of_Users[source].gender;
 	 List_of_Users[source].gender = tempgender;
+	 
+	 temp_key = List_of_Users[dest].key_weight;
+	 List_of_Users[dest].key_weight = List_of_Users[source].key_weight;
+	 List_of_Users[source].key_weight = temp_key;
  }
 
 unsigned char remove_password_verification(){
@@ -1994,6 +1999,14 @@ void AddDrink_Tick(){
 		case add_drink_wait:
 			liquor_door_sensor = GetBit(~PINB, 5);
 			
+			while(liquor_door_sensor){
+				liquor_door_sensor = GetBit(~PINB, 5);
+			}
+			
+			_delay_ms(200);
+			
+			liquor_door_sensor = GetBit(~PINB, 5);
+			
 			if(liquor_door_sensor && add_drink_flag){
 				PORTB = SetBit(PORTB,1,0);
 				add_drink_display();
@@ -2166,6 +2179,7 @@ void AddDrink_Tick(){
 				type_of_drink = 0; //0=nodrink,1=beer, 2=wine,3=liquor,4=other
 				volume_of_drink = 0;
 				drink_alcohol_content = 0;
+				total_container_weight = 0;
 				add_drink_variable_reset();
 				add_drink_flag = 0;
 				add_drink_state = add_drink_init;
@@ -2177,6 +2191,11 @@ void AddDrink_Tick(){
 				//eeprom_update_word(&e_volume_of_drink,volume_of_drink);
 				
 				total_container_weight = 0;
+				total_container_weight = HX711_get_units(10);
+				total_container_weight = HX711_get_units(10);
+				total_container_weight = HX711_get_units(10);
+				total_container_weight = HX711_get_units(10);
+				total_container_weight = HX711_get_units(10);
 				total_container_weight = HX711_get_units(10);
 				total_container_weight = HX711_get_units(10);
 				total_container_weight = HX711_get_units(10);
@@ -2620,6 +2639,12 @@ void GetDrink_Tick(){
 			weight_of_key = HX711_1_get_units(10);
 			weight_of_key = HX711_1_get_units(10);
 			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
+			weight_of_key = HX711_1_get_units(10);
 			
 			if((List_of_Users[user_to_remove].key_weight - 2 < weight_of_key) && (weight_of_key < List_of_Users[user_to_remove].key_weight + 2)){
 				correct_key = 1;
@@ -2753,7 +2778,7 @@ void GetDrink_Tick(){
 		
 			else if(correct_key == 0){
 				nokia_lcd_clear();
-				nokia_lcd_write_string("Incorrect Keys. Press any key to return to main menu",1);
+				nokia_lcd_write_string("Incorrect KeysPress any key to return to  main menu",1);
 				nokia_lcd_render();
 				correct_user_credentials = 0;
 				get_drink_flag = 0;
@@ -2779,6 +2804,7 @@ void GetDrink_Tick(){
 		case gd_close_door:
 			if(key_door_sensor){
 				keys_have_been_deposited = 1;
+				PORTB = SetBit(PORTB,2,0);
 				nokia_lcd_clear();
 				nokia_lcd_write_string("Enjoy! Press  any key to    continue",1);
 				nokia_lcd_render();
@@ -2902,7 +2928,12 @@ void GetKey_Tick(){
 			new_container_weight = HX711_get_units(10);
 			new_container_weight = HX711_get_units(10);
 			new_container_weight = HX711_get_units(10);
-			
+			new_container_weight = HX711_get_units(10);
+			new_container_weight = HX711_get_units(10);
+			new_container_weight = HX711_get_units(10);
+			new_container_weight = HX711_get_units(10);
+			new_container_weight = HX711_get_units(10);
+						
 			amount_alcohol_consumed = total_container_weight - new_container_weight;
 			total_container_weight = new_container_weight;
 			volume_of_drink = volume_of_drink - amount_alcohol_consumed;
@@ -2913,27 +2944,27 @@ void GetKey_Tick(){
 			
 			double grams_of_alcohol_consumed;
 			//grams_of_alcohol_consumed =  (0.789 * (amount_alcohol_consumed * .033814) * (double)drink_alcohol_content);
-			grams_of_alcohol_consumed =  (0.789 * amount_alcohol_consumed * (double)drink_alcohol_content);
+			grams_of_alcohol_consumed =  (0.789 * (double)amount_alcohol_consumed * (double)drink_alcohol_content);
 			double weight_grams;
 			weight_grams = (double)List_of_Users[current_user].weight * 454.0;
 		
 			double bac = 0.0;
 		
 			if(List_of_Users[current_user].gender == 1){
-				bac = (grams_of_alcohol_consumed/(weight_grams * male_constant)) * 100;
+				bac = (grams_of_alcohol_consumed/(weight_grams * male_constant));
 			}
 		
 			else{
-				bac = (grams_of_alcohol_consumed/(weight_grams * female_constant)) * 100;
+				bac = (grams_of_alcohol_consumed/(weight_grams * female_constant));
 			}
 			
-			double bac_elapsed_time = (double)time_elapsed_counter * 0.000004167;
+			double bac_elapsed_time = (double)time_elapsed_counter * 0.000002083;
 			
 			bac = bac - bac_elapsed_time;
-			
+							
 			if(bac > .08){
 				bac_elapsed_time = bac - .08;
-				time_remaining_counter = ((bac_elapsed_time / 0.015) * 3600);
+				time_remaining_counter = ((bac_elapsed_time / 0.015) * 36);
 				timer_is_on = 1;
 			}
 		
@@ -3047,11 +3078,6 @@ void GetKey_Tick(){
 			}
 		
 			else if(!user_verify_flag && correct_user_credentials && (user_to_remove == current_user)){
-				amount_alcohol_consumed = HX711_get_units(10);
-				amount_alcohol_consumed = HX711_get_units(10);
-				amount_alcohol_consumed = HX711_get_units(10);
-				amount_alcohol_consumed = HX711_get_units(10);
-				amount_alcohol_consumed = HX711_get_units(10);
 				
 				nokia_lcd_clear();
 				nokia_lcd_write_string("Return Drink  and close door",1);
@@ -3106,6 +3132,7 @@ void GetKey_Tick(){
 				get_key_flag = 0;
 				drink_has_been_removed = 0;
 				keys_have_been_deposited = 0;
+				PORTB = SetBit(PORTB,2,1);
 				get_key_state = gk_init;
 			}
 		
@@ -3200,7 +3227,7 @@ void AutoLockLiquorDoor_Tick(){
 			break;
 		
 		case alld_count:
-			if(liquor_door_counter > 3000){	// change to 6000 for 1 minute
+			if(liquor_door_counter > 1500){	// change to 6000 for 1 minute
 				auto_lock_liquor_door = alld_lock;
 			}
 			
@@ -3279,7 +3306,7 @@ void AutoLockKeyDoor_Tick(){
 			break;
 		
 		case alkd_count:
-			if(key_door_counter > 3000){	// change to 6000 for 1 minute
+			if(key_door_counter > 1500){	// change to 6000 for 1 minute
 				auto_lock_key_door = alkd_lock;
 			}
 		
@@ -3381,6 +3408,7 @@ void TimeElapsedPulse(unsigned portBASE_TYPE Priority){
 }
 
 /////// Time-elapsed since drink has been removed state machine /////
+	
 
 int main(void) 
 {
@@ -3401,13 +3429,14 @@ int main(void)
 	nokia_lcd_init();
 	
 	HX711_init(64);
-	HX711_set_offset(8404767);
-	HX711_set_scale(-160.6693354);
+	HX711_set_offset(8406650);
+	HX711_set_scale(-163.4955075);
 	
 	HX711_1_init(128);
 	HX711_1_set_offset(8409384);
 	HX711_1_set_scale(-946.4825995);
 
+	PORTB = SetBit(PORTB,2,1);
 	
     //Start Tasks  
     MainMenuPulse(1);
