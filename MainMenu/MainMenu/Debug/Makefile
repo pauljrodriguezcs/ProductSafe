@@ -39,6 +39,8 @@ SUBDIRS :=
 C_SRCS +=  \
 ../croutine.c \
 ../heap_1.c \
+../HX711.c \
+../HX711_1.c \
 ../list.c \
 ../main.c \
 ../nokia5110.c \
@@ -57,6 +59,8 @@ ASM_SRCS +=
 OBJS +=  \
 croutine.o \
 heap_1.o \
+HX711.o \
+HX711_1.o \
 list.o \
 main.o \
 nokia5110.o \
@@ -68,6 +72,8 @@ timers.o
 OBJS_AS_ARGS +=  \
 croutine.o \
 heap_1.o \
+HX711.o \
+HX711_1.o \
 list.o \
 main.o \
 nokia5110.o \
@@ -79,6 +85,8 @@ timers.o
 C_DEPS +=  \
 croutine.d \
 heap_1.d \
+HX711.d \
+HX711_1.d \
 list.d \
 main.d \
 nokia5110.d \
@@ -90,6 +98,8 @@ timers.d
 C_DEPS_AS_ARGS +=  \
 croutine.d \
 heap_1.d \
+HX711.d \
+HX711_1.d \
 list.d \
 main.d \
 nokia5110.d \
@@ -112,6 +122,10 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
+
+
 
 
 

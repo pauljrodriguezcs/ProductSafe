@@ -255,12 +255,12 @@ int main(void)
 	nokia_lcd_init();
 	
 	HX711_1_init(128);
-	HX711_1_set_offset(8409384);
-	HX711_1_set_scale(-946.4825995);	
+	//HX711_1_set_offset(8409384);
+	//HX711_1_set_scale(-946.4825995);	
 					
-	//calibrate();
+	calibrate();
 	//test();
-	test_scale();
+	//test_scale();
 	
 	return 0; 
 }
